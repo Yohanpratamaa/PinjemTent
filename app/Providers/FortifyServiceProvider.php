@@ -55,7 +55,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::requestPasswordResetLinkView(fn () => view('livewire.auth.forgot-password'));
     }
 
-        /**
+    /**
      * Configure rate limiting.
      */
     private function configureRateLimiting(): void
@@ -68,27 +68,6 @@ class FortifyServiceProvider extends ServiceProvider
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
-        });
-    }
-
-    /**
-     * Configure custom redirects.
-     */
-    private function configureRedirects(): void
-    {
-        // Custom redirect after login
-        Fortify::redirectTo(function () {
-            $user = Auth::user();
-
-            if ($user->isAdmin()) {
-                return '/admin/dashboard';
-            }
-
-            if ($user->isUser()) {
-                return '/user/dashboard';
-            }
-
-            return '/dashboard';
         });
     }
 }

@@ -16,7 +16,7 @@ class IsUser
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || !Auth::user()->isUser()) {
+        if (!Auth::check() || Auth::user()->role !== 'user') {
             abort(403, 'Unauthorized access. User role required.');
         }
 

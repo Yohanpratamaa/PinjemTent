@@ -39,11 +39,11 @@ Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
 Route::get('/dashboard', function () {
     $user = Auth::user();
 
-    if ($user->isAdmin()) {
+    if ($user && $user->role === 'admin') {
         return redirect()->route('admin.dashboard');
     }
 
-    if ($user->isUser()) {
+    if ($user && $user->role === 'user') {
         return redirect()->route('user.dashboard');
     }
 

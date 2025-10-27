@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -14,13 +15,14 @@ class RegisterResponse implements RegisterResponseContract
      */
     public function toResponse($request): JsonResponse|RedirectResponse
     {
+        /** @var User $user */
         $user = Auth::user();
 
-        if ($user->isAdmin()) {
+        if ($user && $user->role === 'admin') {
             return redirect()->intended('/admin/dashboard');
         }
 
-        if ($user->isUser()) {
+        if ($user && $user->role === 'user') {
             return redirect()->intended('/user/dashboard');
         }
 
