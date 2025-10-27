@@ -26,7 +26,7 @@
                 method="POST"
                 action="{{ route('admin.units.update', $unit) }}"
                 class="p-6 space-y-6"
-                onsubmit="return debugUnitForm(this) && validateForm()"
+                onsubmit="return debugUnitUpdateForm(this) && validateForm()"
                 data-unit-id="{{ $unit->id }}"
                 data-unit-name="{{ $unit->nama_unit }}"
             >
@@ -132,15 +132,15 @@
                                 <flux:input
                                     type="number"
                                     name="stok"
-                                    placeholder="1"
-                                    value="{{ old('stok', $unit->stok ?? 1) }}"
-                                    min="1"
+                                    placeholder="0"
+                                    value="{{ old('stok', $unit->stok ?? 0) }}"
+                                    min="0"
                                     step="1"
                                     required
-                                    oninput="this.value = Math.max(1, parseInt(this.value) || 1)"
+                                    class="stock-input"
                                 />
                                 <flux:description>
-                                    Number of units available (minimum 1)
+                                    Number of units available (can be 0 or more)
                                     @if($unit->peminjamans()->where('status', 'dipinjam')->count() > 0)
                                         <br><span class="text-amber-600 dark:text-amber-400">
                                             Note: {{ $unit->peminjamans()->where('status', 'dipinjam')->count() }} unit(s) currently rented
@@ -354,6 +354,20 @@
     </div>
 
     <script>
+        // Separate function for update form debugging
+        function debugUnitUpdateForm(formElement) {
+            const formData = new FormData(formElement);
+            console.log('🔄 UNIT UPDATE Form Debug ===');
+            console.log('Form Action:', formElement.action);
+            console.log('Form Method:', formElement.method);
+
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}" (${typeof value})`);
+            }
+            console.log('=== End Update Debug ===');
+            return true; // Allow form submission
+        }
+
         function debugFormData(event) {
             const formData = new FormData(event.target);
             console.log('=== Form Data Debug ===');
@@ -384,9 +398,9 @@
             const stokInt = parseInt(stokValue);
             const minActiveRentals = {{ $unit->peminjamans()->where('status', 'dipinjam')->count() }};
 
-            // Validasi stok tidak kosong
-            if (!stokInt || stokInt < 1) {
-                alert('Stock quantity tidak boleh kosong dan minimal 1!');
+            // Validasi stok tidak negatif (boleh 0)
+            if (isNaN(stokInt) || stokInt < 0) {
+                alert('Stock quantity harus berupa angka dan tidak boleh negatif!');
                 stokInput.focus();
                 return false;
             }
@@ -399,7 +413,7 @@
             }
 
             // Validasi stock terlalu besar
-            if (stokInt > 100) {
+            if (stokInt > 1000) {
                 return confirm('Stock yang dimasukkan cukup besar (' + stokInt + '). Apakah Anda yakin?');
             }
 
@@ -417,36 +431,38 @@
                 stokInput.value = currentStock;
             }
 
+            // Remove oninput restriction untuk lebih fleksibel
+            stokInput.removeAttribute('oninput');
+
             stokInput.addEventListener('input', function() {
                 let value = this.value.trim();
 
-                // Jika kosong, gunakan nilai saat ini
-                if (!value || value === '') {
-                    this.value = currentStock;
-                    return;
+                // Allow temporary empty for editing
+                if (value === '') {
+                    return; // Allow empty during editing
                 }
 
                 let intValue = parseInt(value);
 
-                // Pastikan minimal 1
-                if (intValue < 1 || isNaN(intValue)) {
-                    this.value = Math.max(1, minActiveRentals, currentStock);
-                }
-
-                // Pastikan tidak kurang dari yang dipinjam
-                if (minActiveRentals > 0 && intValue < minActiveRentals) {
-                    this.value = minActiveRentals;
+                // Pastikan tidak negatif
+                if (intValue < 0 || isNaN(intValue)) {
+                    this.style.borderColor = '#ef4444';
+                    this.style.boxShadow = '0 0 0 1px #ef4444';
+                } else if (minActiveRentals > 0 && intValue < minActiveRentals) {
+                    // Warning jika kurang dari rental aktif
                     this.style.borderColor = '#f59e0b';
+                    this.style.boxShadow = '0 0 0 1px #f59e0b';
                 } else {
                     this.style.borderColor = '';
+                    this.style.boxShadow = '';
                 }
             });
 
             // Validasi saat blur (kehilangan focus)
             stokInput.addEventListener('blur', function() {
                 let value = this.value.trim();
-                if (!value || parseInt(value) < 1) {
-                    this.value = Math.max(currentStock, minActiveRentals, 1);
+                if (value === '' || parseInt(value) < 0) {
+                    this.value = Math.max(currentStock, minActiveRentals, 0);
                 }
             });
         });

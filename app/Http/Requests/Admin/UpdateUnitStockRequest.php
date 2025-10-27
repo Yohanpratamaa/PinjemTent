@@ -64,7 +64,7 @@ class UpdateUnitStockRequest extends FormRequest
             'stok' => [
                 'required',
                 'integer',
-                'min:' . max(1, $activeRentals), // Minimal sama dengan jumlah yang dipinjam
+                'min:0', // Allow 0 stock
                 'max:9999' // Maksimal untuk mencegah input yang tidak masuk akal
             ],
             'harga_sewa_per_hari' => [
@@ -112,9 +112,7 @@ class UpdateUnitStockRequest extends FormRequest
             'status.in' => 'Status harus berupa: tersedia, dipinjam, atau maintenance',
             'stok.required' => 'Stock unit wajib diisi',
             'stok.integer' => 'Stock harus berupa angka',
-            'stok.min' => $activeRentals > 0
-                ? "Stock tidak boleh kurang dari {$activeRentals} karena ada unit yang sedang dipinjam"
-                : 'Stock minimal adalah 1',
+            'stok.min' => 'Stock tidak boleh negatif',
             'stok.max' => 'Stock maksimal adalah 9999',
             'harga_sewa_per_hari.numeric' => 'Harga sewa harus berupa angka',
             'harga_sewa_per_hari.min' => 'Harga sewa tidak boleh negatif',
@@ -133,17 +131,17 @@ class UpdateUnitStockRequest extends FormRequest
     {
         // Ambil unit yang sedang diedit untuk fallback
         $unit = $this->route('unit');
-        $fallbackStock = $unit ? $unit->stok : 1;
+        $fallbackStock = $unit ? $unit->stok : 0;
 
-        // Pastikan stok selalu integer dan tidak null, minimal 1
+        // Pastikan stok selalu integer dan tidak null, minimal 0
         if ($this->has('stok')) {
             $stok = $this->input('stok');
             $stok = trim($stok); // Hapus whitespace
 
             if (is_numeric($stok) && !empty($stok)) {
                 $processedStok = (int) $stok;
-                // Pastikan minimal 1
-                $processedStok = max(1, $processedStok);
+                // Pastikan minimal 0 (boleh 0)
+                $processedStok = max(0, $processedStok);
             } else {
                 // Jika kosong atau tidak valid, gunakan stock lama dari database
                 $processedStok = $fallbackStock;
@@ -176,10 +174,19 @@ class UpdateUnitStockRequest extends FormRequest
         $validator->after(function ($validator) {
             $unit = $this->route('unit');
             $newStock = $this->input('stok');
+            $activeRentals = $unit ? $unit->peminjamans()->where('status', 'dipinjam')->count() : 0;
 
-            if ($unit && $newStock) {
+            if ($unit && $newStock !== null) {
+                // Warning jika stock kurang dari rental aktif (tapi masih boleh)
+                if ($activeRentals > 0 && $newStock < $activeRentals) {
+                    $validator->errors()->add('stok',
+                        "Warning: Stock ({$newStock}) kurang dari rental aktif ({$activeRentals}). " .
+                        "Pastikan ini sesuai dengan kondisi yang diinginkan."
+                    );
+                }
+
                 // Cek apakah stock yang diinput masuk akal
-                if ($newStock > 100) {
+                if ($newStock > 1000) {
                     $validator->errors()->add('stok', 'Stock yang dimasukkan terlalu besar. Harap periksa kembali.');
                 }
 
@@ -189,6 +196,7 @@ class UpdateUnitStockRequest extends FormRequest
                     'unit_code' => $unit->kode_unit,
                     'old_stock' => $unit->stok,
                     'new_stock' => $newStock,
+                    'active_rentals' => $activeRentals,
                     'user_id' => Auth::id()
                 ]);
             }

@@ -35,7 +35,23 @@ function debugUnitForm(formElement) {
     return true; // Allow form submission
 }
 
-// Debug Delete Action
+// Separate debug function for UPDATE form specifically
+function debugUnitUpdateForm(formElement) {
+    const formData = new FormData(formElement);
+    console.group("🔄 Unit UPDATE Form Debug");
+    console.log("Action: UPDATE UNIT");
+    console.log("Form Element:", formElement);
+    console.log("Form Action:", formElement.action);
+    console.log("Form Method:", formElement.method);
+
+    console.log("📋 UPDATE Form Data:");
+    for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}: "${value}" (${typeof value})`);
+    }
+
+    console.groupEnd();
+    return true; // Allow form submission
+} // Debug Delete Action
 function debugDeleteUnit(unitId, unitName) {
     console.group("🗑️ Delete Unit Debug");
     console.log("Unit ID:", unitId);

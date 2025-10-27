@@ -46,8 +46,10 @@
 
                 <div class="flex items-center gap-3">
                     <flux:button type="submit" variant="outline">
-                        <flux:icon.magnifying-glass class="size-4" />
-                        Search
+                        <div class="flex items-center gap-2">
+                            <flux:icon.magnifying-glass class="size-4" />
+                            <span>Search</span>
+                        </div>
                     </flux:button>
                     <flux:button type="button" variant="ghost" onclick="window.location.href='{{ route('admin.users.index') }}'">
                         Clear Filters
