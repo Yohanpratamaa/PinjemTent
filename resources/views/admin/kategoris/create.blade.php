@@ -1,15 +1,21 @@
-<x-layouts.admin :title="__('Create New Category')">
+<x-layouts.admin :title="__('Create Category')">
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <!-- Header Section -->
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Create New Category</h1>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Add a new category to organize tent units</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Add a new category to organize your rental items
+                </p>
             </div>
-            <flux:button variant="outline" href="{{ route('admin.kategoris.index') }}">
-                <flux:icon.arrow-left class="size-4" />
-                Back to Categories
-            </flux:button>
+            <div class="flex items-center gap-3">
+                <flux:button variant="outline" href="{{ route('admin.kategoris.index') }}">
+                    <div class="flex items-center gap-2">
+                        <flux:icon.arrow-left class="size-4" />
+                        <span>Back to Categories</span>
+                    </div>
+                </flux:button>
+            </div>
         </div>
 
         <!-- Form Section -->
@@ -19,35 +25,35 @@
 
                 <!-- Basic Information -->
                 <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Category Information</h3>
-                    <div class="space-y-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic Information</h3>
+                    <div class="grid grid-cols-1 gap-6">
                         <!-- Category Name -->
                         <div>
                             <flux:field>
                                 <flux:label>Category Name</flux:label>
                                 <flux:input
                                     name="nama_kategori"
-                                    placeholder="e.g., Family Tents, Camping Gear, Hiking Equipment"
+                                    placeholder="e.g., Tenda Camping, Sleeping Bags, Cooking Equipment"
                                     value="{{ old('nama_kategori') }}"
                                     required
                                 />
-                                <flux:description>Enter a clear, descriptive name for the category</flux:description>
+                                <flux:description>Unique name for the category</flux:description>
                                 @error('nama_kategori')
                                     <flux:error>{{ $message }}</flux:error>
                                 @enderror
                             </flux:field>
                         </div>
 
-                        <!-- Category Description -->
+                        <!-- Description -->
                         <div>
                             <flux:field>
                                 <flux:label>Description</flux:label>
                                 <flux:textarea
                                     name="deskripsi"
-                                    placeholder="Describe what types of units belong to this category, their features, or intended use..."
+                                    placeholder="Describe what types of items belong to this category..."
                                     rows="4"
                                 >{{ old('deskripsi') }}</flux:textarea>
-                                <flux:description>Provide a detailed description to help users understand this category</flux:description>
+                                <flux:description>Optional description to help users understand this category</flux:description>
                                 @error('deskripsi')
                                     <flux:error>{{ $message }}</flux:error>
                                 @enderror
@@ -56,67 +62,13 @@
                     </div>
                 </div>
 
-                <!-- Category Properties (Optional) -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Category Properties</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Capacity Range -->
-                        <div>
-                            <flux:field>
-                                <flux:label>Typical Capacity</flux:label>
-                                <flux:input
-                                    name="kapasitas"
-                                    placeholder="e.g., 2-4 persons, 6-8 persons"
-                                    value="{{ old('kapasitas') }}"
-                                />
-                                <flux:description>Typical capacity or size range for units in this category</flux:description>
-                                @error('kapasitas')
-                                    <flux:error>{{ $message }}</flux:error>
-                                @enderror
-                            </flux:field>
-                        </div>
-
-                        <!-- Usage Type -->
-                        <div>
-                            <flux:field>
-                                <flux:label>Usage Type</flux:label>
-                                <flux:select name="jenis_penggunaan" placeholder="Select usage type">
-                                    <option value="">Select type</option>
-                                    <option value="outdoor" {{ old('jenis_penggunaan') === 'outdoor' ? 'selected' : '' }}>
-                                        Outdoor Activities
-                                    </option>
-                                    <option value="camping" {{ old('jenis_penggunaan') === 'camping' ? 'selected' : '' }}>
-                                        Camping
-                                    </option>
-                                    <option value="hiking" {{ old('jenis_penggunaan') === 'hiking' ? 'selected' : '' }}>
-                                        Hiking/Backpacking
-                                    </option>
-                                    <option value="family" {{ old('jenis_penggunaan') === 'family' ? 'selected' : '' }}>
-                                        Family Recreation
-                                    </option>
-                                    <option value="event" {{ old('jenis_penggunaan') === 'event' ? 'selected' : '' }}>
-                                        Events/Festivals
-                                    </option>
-                                    <option value="emergency" {{ old('jenis_penggunaan') === 'emergency' ? 'selected' : '' }}>
-                                        Emergency/Relief
-                                    </option>
-                                </flux:select>
-                                <flux:description>Primary intended use for units in this category</flux:description>
-                                @error('jenis_penggunaan')
-                                    <flux:error>{{ $message }}</flux:error>
-                                @enderror
-                            </flux:field>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Assign Existing Units (Optional) -->
+                <!-- Assign Units (Optional) -->
                 @if($availableUnits->count() > 0)
                     <div>
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Assign Existing Units</h3>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Assign Units (Optional)</h3>
                         <flux:field>
-                            <flux:label>Select Units to Include</flux:label>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                            <flux:label>Select Units to Add to This Category</flux:label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2 max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                                 @foreach($availableUnits as $unit)
                                     <div class="flex items-center">
                                         <input
@@ -131,13 +83,18 @@
                                             for="unit_{{ $unit->id }}"
                                             class="ml-3 text-sm text-gray-700 dark:text-gray-300"
                                         >
-                                            <span class="font-medium">{{ $unit->kode_unit }}</span>
-                                            <span class="text-gray-500">- {{ $unit->nama_unit }}</span>
+                                            <div>
+                                                <span class="font-medium">{{ $unit->nama_unit }}</span>
+                                                <span class="text-gray-500">({{ $unit->kode_unit }})</span>
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                Stock: {{ $unit->stok }} • Status: {{ ucfirst($unit->status) }}
+                                            </div>
                                         </label>
                                     </div>
                                 @endforeach
                             </div>
-                            <flux:description>Optional: You can assign existing units to this category now, or do it later</flux:description>
+                            <flux:description>You can assign units to this category now or add them later</flux:description>
                             @error('units')
                                 <flux:error>{{ $message }}</flux:error>
                             @enderror
@@ -148,46 +105,59 @@
                 <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <flux:button type="submit" variant="primary">
-                        <flux:icon.plus class="size-4" />
-                        Create Category
+                        <div class="flex items-center gap-2">
+                            <flux:icon.plus class="size-4" />
+                            <span>Create Category</span>
+                        </div>
                     </flux:button>
                     <flux:button type="button" variant="outline" onclick="window.history.back()">
-                        Cancel
+                        <div class="flex items-center gap-2">
+                            <flux:icon.arrow-left class="size-4" />
+                            <span>Cancel</span>
+                        </div>
                     </flux:button>
                 </div>
             </form>
         </div>
 
-        <!-- Example Categories -->
+        <!-- Category Examples -->
         <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
             <div class="flex items-start gap-3">
                 <flux:icon.light-bulb class="size-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                 <div>
-                    <h4 class="text-sm font-medium text-blue-900 dark:text-blue-100">Category Ideas</h4>
-                    <div class="mt-2 text-sm text-blue-700 dark:text-blue-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                            <div>
-                                <p class="font-medium">By Size:</p>
-                                <ul class="text-xs space-y-1 mt-1">
-                                    <li>• Solo/1-Person Tents</li>
-                                    <li>• Small (2-3 Person) Tents</li>
-                                    <li>• Family (4-6 Person) Tents</li>
-                                    <li>• Large Group (8+ Person) Tents</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <p class="font-medium">By Purpose:</p>
-                                <ul class="text-xs space-y-1 mt-1">
-                                    <li>• Backpacking/Hiking Tents</li>
-                                    <li>• Car Camping Tents</li>
-                                    <li>• Emergency/Disaster Relief</li>
-                                    <li>• Event/Festival Tents</li>
-                                </ul>
-                            </div>
+                    <h4 class="text-sm font-medium text-blue-900 dark:text-blue-100">Category Examples</h4>
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-700 dark:text-blue-200">
+                        <div>
+                            <p class="font-medium">By Equipment Type:</p>
+                            <ul class="text-xs space-y-1 mt-1">
+                                <li>• Tenda Camping</li>
+                                <li>• Sleeping Bags</li>
+                                <li>• Cooking Equipment</li>
+                                <li>• Navigation Tools</li>
+                                <li>• Safety Equipment</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-medium">By Size/Capacity:</p>
+                            <ul class="text-xs space-y-1 mt-1">
+                                <li>• Solo Equipment</li>
+                                <li>• Small Group (2-4 people)</li>
+                                <li>• Family Size (4-6 people)</li>
+                                <li>• Large Group (8+ people)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-medium">By Activity:</p>
+                            <ul class="text-xs space-y-1 mt-1">
+                                <li>• Hiking/Backpacking</li>
+                                <li>• Car Camping</li>
+                                <li>• Emergency/Disaster</li>
+                                <li>• Events/Festivals</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</x-layouts.app>
+</x-layouts.admin>

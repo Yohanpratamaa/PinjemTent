@@ -29,8 +29,8 @@
                     <div>
                         <flux:select name="status" placeholder="Filter by status">
                             <option value="">All Status</option>
-                            <option value="tersedia" {{ request('status') === 'tersedia' ? 'selected' : '' }}>Tersedia</option>
-                            <option value="disewa" {{ request('status') === 'disewa' ? 'selected' : '' }}>Disewa</option>
+                            <option value="tersedia" {{ request('status') === 'tersedia' ? 'selected' : '' }}>Available</option>
+                            <option value="disewa" {{ request('status') === 'disewa' ? 'selected' : '' }}>Rented</option>
                             <option value="maintenance" {{ request('status') === 'maintenance' ? 'selected' : '' }}>Maintenance</option>
                         </flux:select>
                     </div>
@@ -89,7 +89,7 @@
             <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-800">
-                        <flux:icon.wrench-screwdriver class="size-5 text-yellow-600 dark:text-yellow-400" />
+                        <flux:icon.cog-6-tooth class="size-5 text-yellow-600 dark:text-yellow-400" />
                     </div>
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Maintenance</p>
@@ -101,7 +101,7 @@
             <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800">
-                        <flux:icon.squares-2x2 class="size-5 text-purple-600 dark:text-purple-400" />
+                        <flux:icon.cube class="size-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Total Units</p>
@@ -125,7 +125,16 @@
                                     Unit Name
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Brand
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Capacity
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                     Categories
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Rental Price
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                     Status
@@ -151,6 +160,21 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900 dark:text-white">{{ $unit->nama_unit }}</div>
+                                        @if($unit->deskripsi)
+                                            <div class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                                                {{ Str::limit($unit->deskripsi, 50) }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">
+                                            {{ $unit->merk ?? '-' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-white">
+                                            {{ $unit->kapasitas ?? '-' }}
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-wrap gap-1">
@@ -160,6 +184,14 @@
                                                 </flux:badge>
                                             @endforeach
                                         </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-green-600 dark:text-green-400">
+                                            {{ $unit->harga_sewa_per_hari ? 'Rp ' . number_format($unit->harga_sewa_per_hari, 0, ',', '.') : '-' }}
+                                        </div>
+                                        @if($unit->harga_sewa_per_hari)
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">per hari</div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @switch($unit->status)
@@ -233,7 +265,7 @@
                 </div>
             @else
                 <div class="text-center py-12">
-                    <flux:icon.squares-2x2 class="mx-auto h-12 w-12 text-gray-400" />
+                    <flux:icon.cube class="mx-auto h-12 w-12 text-gray-400" />
                     <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No units found</h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         Get started by creating a new unit.
@@ -248,4 +280,4 @@
             @endif
         </div>
     </div>
-</x-layouts.app>
+</x-layouts.admin>

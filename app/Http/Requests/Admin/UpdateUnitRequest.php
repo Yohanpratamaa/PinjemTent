@@ -52,7 +52,8 @@ class UpdateUnitRequest extends FormRequest
             'stok' => [
                 'required',
                 'integer',
-                'min:0'
+                'min:1', // Minimal 1, bukan 0
+                'max:9999'
             ],
             'kategori_ids' => [
                 'nullable',
@@ -74,7 +75,8 @@ class UpdateUnitRequest extends FormRequest
             'kode_unit.unique' => 'Kode unit sudah digunakan',
             'nama_unit.required' => 'Nama unit wajib diisi',
             'status.in' => 'Status harus berupa: tersedia, dipinjam, atau maintenance',
-            'stok.min' => 'Stok tidak boleh kurang dari 0',
+            'stok.min' => 'Stok tidak boleh kurang dari 1',
+            'stok.max' => 'Stok tidak boleh lebih dari 9999',
             'kategori_ids.*.exists' => 'Kategori yang dipilih tidak valid'
         ];
     }

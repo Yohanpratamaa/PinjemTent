@@ -7,6 +7,8 @@ use App\Repositories\KategoriRepository;
 use App\Models\Unit;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 
 /**
@@ -65,9 +67,14 @@ class UnitService
         $unit = $this->unitRepository->create([
             'kode_unit' => $data['kode_unit'],
             'nama_unit' => $data['nama_unit'],
+            'merk' => $data['merk'] ?? null,
+            'kapasitas' => $data['kapasitas'] ?? null,
             'deskripsi' => $data['deskripsi'] ?? null,
             'status' => $data['status'] ?? 'tersedia',
-            'stok' => $data['stok'] ?? 1
+            'stok' => $data['stok'] ?? 1,
+            'harga_sewa_per_hari' => $data['harga_sewa_per_hari'] ?? null,
+            'denda_per_hari' => $data['denda_per_hari'] ?? null,
+            'harga_beli' => $data['harga_beli'] ?? null
         ]);
 
         // Attach kategori jika ada
@@ -102,14 +109,48 @@ class UnitService
             }
         }
 
+        // Validasi stok tidak boleh kosong atau null - fallback ke stok lama jika perlu
+        if (!isset($data['stok']) || $data['stok'] === null || $data['stok'] === '') {
+            Log::warning('Empty stock detected in service, using fallback', [
+                'unit_id' => $unit->id,
+                'current_stock' => $unit->stok,
+                'received_data' => $data
+            ]);
+            $data['stok'] = $unit->stok; // Gunakan stok lama sebagai fallback
+        }
+
+        // Validasi stok tidak boleh kurang dari jumlah unit yang sedang dipinjam
+        $activeRentals = $unit->peminjamans()->where('status', 'dipinjam')->count();
+        if ($data['stok'] < $activeRentals) {
+            throw new Exception("Stok tidak boleh kurang dari {$activeRentals} karena masih ada unit yang dipinjam");
+        }
+
+        // Siapkan data update dengan fallback untuk mencegah data hilang
+        $updateData = [
+            'kode_unit' => $data['kode_unit'] ?? $unit->kode_unit,
+            'nama_unit' => $data['nama_unit'] ?? $unit->nama_unit,
+            'merk' => isset($data['merk']) ? $data['merk'] : $unit->merk,
+            'kapasitas' => isset($data['kapasitas']) ? $data['kapasitas'] : $unit->kapasitas,
+            'deskripsi' => isset($data['deskripsi']) ? $data['deskripsi'] : $unit->deskripsi,
+            'status' => $data['status'] ?? $unit->status,
+            'stok' => (int) $data['stok'], // Force ke integer
+            'harga_sewa_per_hari' => isset($data['harga_sewa_per_hari']) ? $data['harga_sewa_per_hari'] : $unit->harga_sewa_per_hari,
+            'denda_per_hari' => isset($data['denda_per_hari']) ? $data['denda_per_hari'] : $unit->denda_per_hari,
+            'harga_beli' => isset($data['harga_beli']) ? $data['harga_beli'] : $unit->harga_beli
+        ];
+
+        // Log perubahan stok
+        if ($unit->stok != $updateData['stok']) {
+            Log::info("Stock updated for unit {$unit->kode_unit}", [
+                'unit_id' => $unit->id,
+                'old_stock' => $unit->stok,
+                'new_stock' => $updateData['stok'],
+                'changed_by' => Auth::id() ?? 'system'
+            ]);
+        }
+
         // Update unit
-        $this->unitRepository->update($id, [
-            'kode_unit' => $data['kode_unit'],
-            'nama_unit' => $data['nama_unit'],
-            'deskripsi' => $data['deskripsi'] ?? null,
-            'status' => $data['status'],
-            'stok' => $data['stok']
-        ]);
+        $this->unitRepository->update($id, $updateData);
 
         // Update kategori
         if (isset($data['kategori_ids'])) {

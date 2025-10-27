@@ -31,5 +31,10 @@ class DatabaseSeeder extends Seeder
         User::factory(5)->create([
             'role' => 'user'
         ]);
+
+        // Seed sample rental data
+        $this->call([
+            PeminjamanSeeder::class,
+        ]);
     }
 }

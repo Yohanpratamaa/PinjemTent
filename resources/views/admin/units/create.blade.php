@@ -55,6 +55,38 @@
                             </flux:field>
                         </div>
 
+                        <!-- Brand -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Brand/Merk</flux:label>
+                                <flux:input
+                                    name="merk"
+                                    placeholder="e.g., Coleman, Eiger"
+                                    value="{{ old('merk') }}"
+                                />
+                                <flux:description>Brand manufacturer of the unit</flux:description>
+                                @error('merk')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Capacity -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Capacity/Kapasitas</flux:label>
+                                <flux:input
+                                    name="kapasitas"
+                                    placeholder="e.g., 4 Orang, 60L, 2 Burner"
+                                    value="{{ old('kapasitas') }}"
+                                />
+                                <flux:description>Capacity specification of the unit</flux:description>
+                                @error('kapasitas')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
                         <!-- Status -->
                         <div>
                             <flux:field>
@@ -88,6 +120,69 @@
                                 />
                                 <flux:description>Number of units available</flux:description>
                                 @error('stok')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing Information -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Pricing Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Harga Sewa per Hari -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Harga Sewa per Hari</flux:label>
+                                <flux:input
+                                    type="number"
+                                    name="harga_sewa_per_hari"
+                                    placeholder="50000"
+                                    value="{{ old('harga_sewa_per_hari') }}"
+                                    min="0"
+                                    step="1000"
+                                />
+                                <flux:description>Rental price per day (IDR)</flux:description>
+                                @error('harga_sewa_per_hari')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Denda per Hari -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Denda per Hari</flux:label>
+                                <flux:input
+                                    type="number"
+                                    name="denda_per_hari"
+                                    placeholder="10000"
+                                    value="{{ old('denda_per_hari') }}"
+                                    min="0"
+                                    step="1000"
+                                />
+                                <flux:description>Late return penalty per day (IDR)</flux:description>
+                                @error('denda_per_hari')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Harga Beli -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Harga Beli</flux:label>
+                                <flux:input
+                                    type="number"
+                                    name="harga_beli"
+                                    placeholder="1200000"
+                                    value="{{ old('harga_beli') }}"
+                                    min="0"
+                                    step="10000"
+                                />
+                                <flux:description>Purchase price for inventory (IDR)</flux:description>
+                                @error('harga_beli')
                                     <flux:error>{{ $message }}</flux:error>
                                 @enderror
                             </flux:field>
@@ -147,11 +242,16 @@
                 <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <flux:button type="submit" variant="primary">
-                        <flux:icon.plus class="size-4" />
-                        Create Unit
+                        <div class="flex items-center gap-2">
+                            <flux:icon.plus class="size-4" />
+                            <span>Create Unit</span>
+                        </div>
                     </flux:button>
                     <flux:button type="button" variant="outline" onclick="window.history.back()">
-                        Cancel
+                        <div class="flex items-center gap-2">
+                            <flux:icon.arrow-left class="size-4" />
+                            <span>Cancel</span>
+                        </div>
                     </flux:button>
                 </div>
             </form>

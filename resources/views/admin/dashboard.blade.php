@@ -19,52 +19,78 @@
             </div>
         </div>
 
-        <!-- Admin Stats Cards -->
+        <!-- Summary Cards -->
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-                <div class="p-6 h-full flex flex-col justify-center">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-800">
-                            <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                            </svg>
+            <x-admin.stats-card
+                title="Total Unit Barang"
+                :value="number_format($totalUnits)"
+                icon="cube"
+                color="blue"
+                subtitle="Total inventory items"
+                :href="route('admin.units.index')"
+            />
+
+            <x-admin.stats-card
+                title="Barang Tersedia"
+                :value="number_format($unitsAvailable)"
+                icon="check-circle"
+                color="green"
+                subtitle="Available for rent"
+            />
+
+            <x-admin.stats-card
+                title="Barang Disewa"
+                :value="number_format($unitsRented)"
+                icon="clock"
+                color="orange"
+                subtitle="Currently rented out"
+                :href="route('admin.peminjamans.index')"
+            />
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-2">
+            <!-- Monthly Rentals Chart -->
+            <div class="relative overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:shadow-lg transition-shadow duration-200">
+                <div class="p-6">
+                    <div class="mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-800">
+                                <svg class="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2-2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Grafik Peminjaman Bulanan</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Trend peminjaman dalam 12 bulan terakhir</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Total Users</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Manage all users</p>
-                        </div>
+                    </div>
+                    <div class="h-80">
+                        <canvas id="monthlyRentalsChart"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-                <div class="p-6 h-full flex flex-col justify-center">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-800">
-                            <svg class="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">System Settings</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Configure system</p>
+            <!-- Category Rentals Chart -->
+            <div class="relative overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:shadow-lg transition-shadow duration-200">
+                <div class="p-6">
+                    <div class="mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800">
+                                <svg class="h-5 w-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Kategori Paling Disewa</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Top kategori dengan peminjaman terbanyak</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-                <div class="p-6 h-full flex flex-col justify-center">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800">
-                            <svg class="h-5 w-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2-2z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Analytics</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">View reports</p>
-                        </div>
+                    <div class="h-80 flex items-center justify-center">
+                        <canvas id="categoryRentalsChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -104,4 +130,141 @@
             </div>
         </div>
     </div>
-</x-layouts.app>
+
+    <!-- Chart.js Script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Monthly Rentals Line Chart
+            const monthlyCtx = document.getElementById('monthlyRentalsChart').getContext('2d');
+            const monthlyChart = new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: @json($monthlyRentals['labels']),
+                    datasets: [{
+                        label: 'Peminjaman',
+                        data: @json($monthlyRentals['data']),
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                },
+                                color: '#6B7280'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(107, 114, 128, 0.1)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                },
+                                color: '#6B7280',
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: '#1D4ED8'
+                        }
+                    }
+                }
+            });
+
+            // Category Rentals Pie Chart
+            const categoryCtx = document.getElementById('categoryRentalsChart').getContext('2d');
+            const categoryChart = new Chart(categoryCtx, {
+                type: 'pie',
+                data: {
+                    labels: @json($categoryRentals['labels']),
+                    datasets: [{
+                        data: @json($categoryRentals['data']),
+                        backgroundColor: @json($categoryRentals['colors']),
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        hoverBorderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                },
+                                color: document.documentElement.classList.contains('dark') ? '#F3F4F6' : '#374151'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Handle dark mode changes
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'class') {
+                        const isDark = document.documentElement.classList.contains('dark');
+                        const textColor = isDark ? '#F3F4F6' : '#374151';
+                        const gridColor = isDark ? 'rgba(156, 163, 175, 0.1)' : 'rgba(107, 114, 128, 0.1)';
+
+                        // Update monthly chart
+                        monthlyChart.options.scales.x.ticks.color = textColor;
+                        monthlyChart.options.scales.y.ticks.color = textColor;
+                        monthlyChart.options.scales.y.grid.color = gridColor;
+                        monthlyChart.update();
+
+                        // Update category chart
+                        categoryChart.options.plugins.legend.labels.color = textColor;
+                        categoryChart.update();
+                    }
+                });
+            });
+
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        });
+    </script>
+</x-layouts.admin>

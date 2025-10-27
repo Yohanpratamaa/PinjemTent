@@ -20,13 +20,21 @@ class Unit extends Model
     protected $fillable = [
         'kode_unit',
         'nama_unit',
+        'merk',
+        'kapasitas',
         'deskripsi',
         'status',
-        'stok'
+        'stok',
+        'harga_sewa_per_hari',
+        'denda_per_hari',
+        'harga_beli'
     ];
 
     protected $casts = [
-        'stok' => 'integer'
+        'stok' => 'integer',
+        'harga_sewa_per_hari' => 'decimal:2',
+        'denda_per_hari' => 'decimal:2',
+        'harga_beli' => 'decimal:2'
     ];
 
     /**

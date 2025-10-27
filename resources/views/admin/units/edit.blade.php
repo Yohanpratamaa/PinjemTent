@@ -22,7 +22,14 @@
 
         <!-- Form Section -->
         <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl">
-            <form method="POST" action="{{ route('admin.units.update', $unit) }}" class="p-6 space-y-6">
+            <form
+                method="POST"
+                action="{{ route('admin.units.update', $unit) }}"
+                class="p-6 space-y-6"
+                onsubmit="return debugUnitForm(this) && validateForm()"
+                data-unit-id="{{ $unit->id }}"
+                data-unit-name="{{ $unit->nama_unit }}"
+            >
                 @csrf
                 @method('PUT')
 
@@ -37,7 +44,7 @@
                                 <flux:input
                                     name="kode_unit"
                                     placeholder="e.g., TNT-001"
-                                    value="{{ old('kode_unit', $unit->kode_unit) }}"
+                                    value="{{ old('kode_unit', $unit->kode_unit ?? '') }}"
                                     required
                                 />
                                 <flux:description>Unique identifier for the unit</flux:description>
@@ -54,11 +61,43 @@
                                 <flux:input
                                     name="nama_unit"
                                     placeholder="e.g., Large Family Tent"
-                                    value="{{ old('nama_unit', $unit->nama_unit) }}"
+                                    value="{{ old('nama_unit', $unit->nama_unit ?? '') }}"
                                     required
                                 />
                                 <flux:description>Display name for the unit</flux:description>
                                 @error('nama_unit')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Brand -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Brand/Merk</flux:label>
+                                <flux:input
+                                    name="merk"
+                                    placeholder="e.g., Coleman, Eiger"
+                                    value="{{ old('merk', $unit->merk) }}"
+                                />
+                                <flux:description>Brand manufacturer of the unit</flux:description>
+                                @error('merk')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Capacity -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Capacity/Kapasitas</flux:label>
+                                <flux:input
+                                    name="kapasitas"
+                                    placeholder="e.g., 4 Orang, 60L, 2 Burner"
+                                    value="{{ old('kapasitas', $unit->kapasitas) }}"
+                                />
+                                <flux:description>Capacity specification of the unit</flux:description>
+                                @error('kapasitas')
                                     <flux:error>{{ $message }}</flux:error>
                                 @enderror
                             </flux:field>
@@ -94,12 +133,84 @@
                                     type="number"
                                     name="stok"
                                     placeholder="1"
-                                    value="{{ old('stok', $unit->stok) }}"
-                                    min="0"
+                                    value="{{ old('stok', $unit->stok ?? 1) }}"
+                                    min="1"
+                                    step="1"
                                     required
+                                    oninput="this.value = Math.max(1, parseInt(this.value) || 1)"
                                 />
-                                <flux:description>Number of units available</flux:description>
+                                <flux:description>
+                                    Number of units available (minimum 1)
+                                    @if($unit->peminjamans()->where('status', 'dipinjam')->count() > 0)
+                                        <br><span class="text-amber-600 dark:text-amber-400">
+                                            Note: {{ $unit->peminjamans()->where('status', 'dipinjam')->count() }} unit(s) currently rented
+                                        </span>
+                                    @endif
+                                </flux:description>
                                 @error('stok')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing Information -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Pricing Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Harga Sewa per Hari -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Harga Sewa per Hari</flux:label>
+                                <flux:input
+                                    type="number"
+                                    name="harga_sewa_per_hari"
+                                    placeholder="50000"
+                                    value="{{ old('harga_sewa_per_hari', $unit->harga_sewa_per_hari) }}"
+                                    min="0"
+                                    step="1000"
+                                />
+                                <flux:description>Rental price per day (IDR)</flux:description>
+                                @error('harga_sewa_per_hari')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Denda per Hari -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Denda per Hari</flux:label>
+                                <flux:input
+                                    type="number"
+                                    name="denda_per_hari"
+                                    placeholder="10000"
+                                    value="{{ old('denda_per_hari', $unit->denda_per_hari) }}"
+                                    min="0"
+                                    step="1000"
+                                />
+                                <flux:description>Late return penalty per day (IDR)</flux:description>
+                                @error('denda_per_hari')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Harga Beli -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Harga Beli</flux:label>
+                                <flux:input
+                                    type="number"
+                                    name="harga_beli"
+                                    placeholder="1200000"
+                                    value="{{ old('harga_beli', $unit->harga_beli) }}"
+                                    min="0"
+                                    step="10000"
+                                />
+                                <flux:description>Purchase price for inventory (IDR)</flux:description>
+                                @error('harga_beli')
                                     <flux:error>{{ $message }}</flux:error>
                                 @enderror
                             </flux:field>
@@ -158,12 +269,17 @@
 
                 <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <flux:button type="submit" variant="primary" class="flex items-center gap-2">
-                        <flux:icon.check class="size-4" />
-                        Update Unit
+                    <flux:button type="submit" variant="primary" onclick="return validateForm()">
+                        <div class="flex items-center gap-2">
+                            <flux:icon.check class="size-4" />
+                            <span>Update Unit</span>
+                        </div>
                     </flux:button>
                     <flux:button type="button" variant="outline" onclick="window.history.back()">
-                        Cancel
+                        <div class="flex items-center gap-2">
+                            <flux:icon.arrow-left class="size-4" />
+                            <span>Cancel</span>
+                        </div>
                     </flux:button>
 
                     <!-- Delete Button -->
@@ -172,13 +288,17 @@
                             method="POST"
                             action="{{ route('admin.units.destroy', $unit) }}"
                             class="inline"
-                            onsubmit="return confirm('Are you sure you want to delete this unit? This action cannot be undone.')"
+                            data-unit-id="{{ $unit->id }}"
+                            data-unit-name="{{ $unit->nama_unit }}"
+                            onsubmit="return debugDeleteUnit('{{ $unit->id }}', '{{ addslashes($unit->nama_unit) }}')"
                         >
                             @csrf
                             @method('DELETE')
-                            <flux:button type="submit" variant="danger" class="flex items-center gap-2">
-                                <flux:icon.trash class="size-4" />
-                                Delete Unit
+                            <flux:button type="submit" variant="danger">
+                                <div class="flex items-center gap-2">
+                                    <flux:icon.trash class="size-4" />
+                                    <span>Delete Unit</span>
+                                </div>
                             </flux:button>
                         </form>
                     </div>
@@ -232,4 +352,106 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function debugFormData(event) {
+            const formData = new FormData(event.target);
+            console.log('=== Form Data Debug ===');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}" (${typeof value})`);
+            }
+            console.log('=== End Debug ===');
+
+            // Pastikan stok tidak kosong sebelum submit
+            const stokInput = document.querySelector('input[name="stok"]');
+            if (!stokInput.value || stokInput.value.trim() === '') {
+                console.warn('Empty stock detected, setting to current value:', {{ $unit->stok }});
+                stokInput.value = {{ $unit->stok }};
+            }
+        }
+
+        function validateForm() {
+            const stokInput = document.querySelector('input[name="stok"]');
+            let stokValue = stokInput.value.trim();
+
+            // Jika kosong, set ke nilai saat ini
+            if (!stokValue || stokValue === '') {
+                console.warn('Empty stock input detected, using current stock value');
+                stokInput.value = {{ $unit->stok }};
+                stokValue = {{ $unit->stok }};
+            }
+
+            const stokInt = parseInt(stokValue);
+            const minActiveRentals = {{ $unit->peminjamans()->where('status', 'dipinjam')->count() }};
+
+            // Validasi stok tidak kosong
+            if (!stokInt || stokInt < 1) {
+                alert('Stock quantity tidak boleh kosong dan minimal 1!');
+                stokInput.focus();
+                return false;
+            }
+
+            // Validasi stok tidak kurang dari yang sedang dipinjam
+            if (minActiveRentals > 0 && stokInt < minActiveRentals) {
+                alert(`Stock tidak boleh kurang dari ${minActiveRentals} karena masih ada unit yang dipinjam!`);
+                stokInput.focus();
+                return false;
+            }
+
+            // Validasi stock terlalu besar
+            if (stokInt > 100) {
+                return confirm('Stock yang dimasukkan cukup besar (' + stokInt + '). Apakah Anda yakin?');
+            }
+
+            return true;
+        }
+
+        // Real-time validation saat user mengetik
+        document.addEventListener('DOMContentLoaded', function() {
+            const stokInput = document.querySelector('input[name="stok"]');
+            const minActiveRentals = {{ $unit->peminjamans()->where('status', 'dipinjam')->count() }};
+            const currentStock = {{ $unit->stok }};
+
+            // Pastikan nilai awal tidak kosong
+            if (!stokInput.value || stokInput.value.trim() === '') {
+                stokInput.value = currentStock;
+            }
+
+            stokInput.addEventListener('input', function() {
+                let value = this.value.trim();
+
+                // Jika kosong, gunakan nilai saat ini
+                if (!value || value === '') {
+                    this.value = currentStock;
+                    return;
+                }
+
+                let intValue = parseInt(value);
+
+                // Pastikan minimal 1
+                if (intValue < 1 || isNaN(intValue)) {
+                    this.value = Math.max(1, minActiveRentals, currentStock);
+                }
+
+                // Pastikan tidak kurang dari yang dipinjam
+                if (minActiveRentals > 0 && intValue < minActiveRentals) {
+                    this.value = minActiveRentals;
+                    this.style.borderColor = '#f59e0b';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+
+            // Validasi saat blur (kehilangan focus)
+            stokInput.addEventListener('blur', function() {
+                let value = this.value.trim();
+                if (!value || parseInt(value) < 1) {
+                    this.value = Math.max(currentStock, minActiveRentals, 1);
+                }
+            });
+        });
+    </script>
+
+    <!-- Debug Script -->
+    <script src="{{ asset('js/unit-debug.js') }}"></script>
 </x-layouts.admin>

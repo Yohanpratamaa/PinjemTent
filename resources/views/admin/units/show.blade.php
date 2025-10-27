@@ -35,6 +35,18 @@
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Unit Name</dt>
                             <dd class="mt-1 text-lg text-gray-900 dark:text-white">{{ $unit->nama_unit }}</dd>
                         </div>
+                        @if($unit->merk)
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Brand/Merk</dt>
+                            <dd class="mt-1 text-lg text-gray-900 dark:text-white">{{ $unit->merk }}</dd>
+                        </div>
+                        @endif
+                        @if($unit->kapasitas)
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Capacity/Kapasitas</dt>
+                            <dd class="mt-1 text-lg text-gray-900 dark:text-white">{{ $unit->kapasitas }}</dd>
+                        </div>
+                        @endif
                         <div>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
                             <dd class="mt-1">
@@ -66,6 +78,46 @@
                         </div>
                     @endif
                 </div>
+
+                <!-- Pricing Information Card -->
+                @if($unit->harga_sewa_per_hari || $unit->denda_per_hari || $unit->harga_beli)
+                <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Pricing Information</h3>
+                    <dl class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        @if($unit->harga_sewa_per_hari)
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Harga Sewa per Hari</dt>
+                            <dd class="mt-1 text-lg font-medium text-green-600 dark:text-green-400">
+                                Rp {{ number_format($unit->harga_sewa_per_hari, 0, ',', '.') }}
+                            </dd>
+                        </div>
+                        @endif
+                        @if($unit->denda_per_hari)
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Denda per Hari</dt>
+                            <dd class="mt-1 text-lg font-medium text-red-600 dark:text-red-400">
+                                Rp {{ number_format($unit->denda_per_hari, 0, ',', '.') }}
+                            </dd>
+                        </div>
+                        @endif
+                        @if($unit->harga_beli)
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Harga Beli</dt>
+                            <dd class="mt-1 text-lg font-medium text-blue-600 dark:text-blue-400">
+                                Rp {{ number_format($unit->harga_beli, 0, ',', '.') }}
+                            </dd>
+                        </div>
+                        @endif
+                    </dl>
+                </div>
+                @endif
+
+                @if($unit->deskripsi)
+                    <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Description</h3>
+                        <p class="text-gray-900 dark:text-white">{{ $unit->deskripsi }}</p>
+                    </div>
+                @endif
 
                 <!-- Categories Card -->
                 <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">

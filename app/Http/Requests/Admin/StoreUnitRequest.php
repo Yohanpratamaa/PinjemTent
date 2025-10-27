@@ -37,6 +37,16 @@ class StoreUnitRequest extends FormRequest
                 'string',
                 'max:255'
             ],
+            'merk' => [
+                'nullable',
+                'string',
+                'max:100'
+            ],
+            'kapasitas' => [
+                'nullable',
+                'string',
+                'max:100'
+            ],
             'deskripsi' => [
                 'nullable',
                 'string',
@@ -50,6 +60,24 @@ class StoreUnitRequest extends FormRequest
                 'required',
                 'integer',
                 'min:0'
+            ],
+            'harga_sewa_per_hari' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:99999999.99'
+            ],
+            'denda_per_hari' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:99999999.99'
+            ],
+            'harga_beli' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:999999999999.99'
             ],
             'kategori_ids' => [
                 'nullable',
@@ -70,8 +98,16 @@ class StoreUnitRequest extends FormRequest
             'kode_unit.required' => 'Kode unit wajib diisi',
             'kode_unit.unique' => 'Kode unit sudah digunakan',
             'nama_unit.required' => 'Nama unit wajib diisi',
+            'merk.max' => 'Merk maksimal 100 karakter',
+            'kapasitas.max' => 'Kapasitas maksimal 100 karakter',
             'status.in' => 'Status harus berupa: tersedia, dipinjam, atau maintenance',
             'stok.min' => 'Stok tidak boleh kurang dari 0',
+            'harga_sewa_per_hari.numeric' => 'Harga sewa harus berupa angka',
+            'harga_sewa_per_hari.min' => 'Harga sewa tidak boleh negatif',
+            'denda_per_hari.numeric' => 'Denda harus berupa angka',
+            'denda_per_hari.min' => 'Denda tidak boleh negatif',
+            'harga_beli.numeric' => 'Harga beli harus berupa angka',
+            'harga_beli.min' => 'Harga beli tidak boleh negatif',
             'kategori_ids.*.exists' => 'Kategori yang dipilih tidak valid'
         ];
     }
