@@ -173,8 +173,10 @@
                 <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <flux:button type="submit" variant="primary">
-                        <flux:icon.plus class="size-4" />
-                        Create User
+                        <div class="flex items-center gap-2">
+                            <flux:icon.plus class="size-4" />
+                            Create User
+                        </div>
                     </flux:button>
                     <flux:button type="button" variant="outline" onclick="window.history.back()">
                         Cancel

@@ -135,8 +135,10 @@
                 <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <flux:button type="submit" variant="primary" class="flex items-center gap-2">
-                        <flux:icon.check class="size-4" />
-                        Update User
+                        <div class="flex items-center gap-2">
+                            <flux:icon.check class="size-4" />
+                            <span>Update User</span>
+                        </div>
                     </flux:button>
                     <flux:button type="button" variant="outline" onclick="window.history.back()">
                         Cancel
@@ -158,8 +160,10 @@
                         @csrf
                         @method('DELETE')
                         <flux:button type="submit" variant="danger" class="flex items-center gap-2">
-                            <flux:icon.trash class="size-4" />
-                            Delete User
+                            <div class="flex items-center gap-2">
+                                <flux:icon.trash class="size-4" />
+                                Delete User
+                            </div>
                         </flux:button>
                     </form>
                 </div>

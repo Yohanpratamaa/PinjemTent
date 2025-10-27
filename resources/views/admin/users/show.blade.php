@@ -200,10 +200,10 @@
                             Edit User
                         </flux:button>
 
-                        <flux:button variant="outline" class="w-full flex items-center gap-2" href="{{ route('admin.peminjamans.create', ['user_id' => $user->id]) }}">
+                        {{-- <flux:button variant="outline" class="w-full flex items-center gap-2" href="{{ route('admin.peminjamans.create', ['user_id' => $user->id]) }}">
                             <flux:icon.plus class="size-4" />
                             Create Rental
-                        </flux:button>
+                        </flux:button> --}}
 
                         @if($user->id !== auth()->id() && $user->email !== 'admin@pinjemtent.com' && $user->peminjamans->where('status', 'dipinjam')->count() === 0)
                             <form
@@ -214,8 +214,10 @@
                                 @csrf
                                 @method('DELETE')
                                 <flux:button type="submit" variant="danger" class="w-full flex items-center gap-2">
-                                    <flux:icon.trash class="size-4" />
-                                    Delete User
+                                    <div class="flex items-center gap-2">
+                                        <flux:icon.trash class="size-4" />
+                                        Delete User
+                                    </div>
                                 </flux:button>
                             </form>
                         @endif
