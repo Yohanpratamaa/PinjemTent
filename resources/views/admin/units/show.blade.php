@@ -9,11 +9,11 @@
                 </p>
             </div>
             <div class="flex items-center gap-3">
-                <flux:button variant="primary" href="{{ route('admin.units.edit', $unit) }}">
+                <flux:button variant="primary" href="{{ route('admin.units.edit', $unit) }}" class="flex items-center gap-2">
                     <flux:icon.pencil class="size-4" />
                     Edit Unit
                 </flux:button>
-                <flux:button variant="outline" href="{{ route('admin.units.index') }}">
+                <flux:button variant="outline" href="{{ route('admin.units.index') }}" class="flex items-center gap-2">
                     <flux:icon.arrow-left class="size-4" />
                     Back to Units
                 </flux:button>
@@ -175,13 +175,13 @@
                 <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Actions</h3>
                     <div class="space-y-3">
-                        <flux:button variant="outline" class="w-full" href="{{ route('admin.units.edit', $unit) }}">
+                        <flux:button variant="outline" class="w-full flex items-center gap-2" href="{{ route('admin.units.edit', $unit) }}">
                             <flux:icon.pencil class="size-4" />
                             Edit Unit
                         </flux:button>
 
                         @if($unit->status === 'tersedia')
-                            <flux:button variant="outline" class="w-full">
+                            <flux:button variant="outline" class="w-full flex items-center gap-2">
                                 <flux:icon.plus class="size-4" />
                                 Create Rental
                             </flux:button>
@@ -194,7 +194,7 @@
                         >
                             @csrf
                             @method('DELETE')
-                            <flux:button type="submit" variant="danger" class="w-full">
+                            <flux:button type="submit" variant="danger" class="w-full flex items-center gap-2">
                                 <flux:icon.trash class="size-4" />
                                 Delete Unit
                             </flux:button>

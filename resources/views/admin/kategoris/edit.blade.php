@@ -102,7 +102,7 @@
 
                 <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <flux:button type="submit" variant="primary">
+                    <flux:button type="submit" variant="primary" class="flex items-center gap-2">
                         <flux:icon.check class="size-4" />
                         Update Category
                     </flux:button>
@@ -121,7 +121,7 @@
                             >
                                 @csrf
                                 @method('DELETE')
-                                <flux:button type="submit" variant="danger">
+                                <flux:button type="submit" variant="danger" class="flex items-center gap-2">
                                     <flux:icon.trash class="size-4" />
                                     Delete Category
                                 </flux:button>

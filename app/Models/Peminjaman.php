@@ -18,6 +18,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Peminjaman extends Model
 {
+    /**
+     * Nama tabel dalam database
+     */
+    protected $table = 'peminjamans';
+
     protected $fillable = [
         'user_id',
         'unit_id',
