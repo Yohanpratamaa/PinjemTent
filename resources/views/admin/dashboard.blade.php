@@ -13,7 +13,7 @@
                         Welcome, {{ auth()->user()->name }}!
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        You are logged in as Administrator
+                        You are logged in as Admin
                     </p>
                 </div>
             </div>
