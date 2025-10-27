@@ -10,7 +10,21 @@ use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
-    return view('welcome');
+    // Jika user sudah login, redirect berdasarkan role
+    if (Auth::check()) {
+        $user = Auth::user();
+
+        if ($user && $user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user && $user->role === 'user') {
+            return redirect()->route('user.dashboard');
+        }
+    }
+
+    // Jika belum login, redirect ke login
+    return redirect()->route('login');
 })->name('home');
 
 // Authentication Routes
