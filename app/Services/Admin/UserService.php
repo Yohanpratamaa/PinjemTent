@@ -48,8 +48,14 @@ class UserService
             throw new Exception('Email sudah digunakan');
         }
 
-        // Hash password
-        $data['password'] = Hash::make($data['password']);
+        // Password sudah di-hash di controller, jangan hash lagi
+        // Hash password hanya jika belum di-hash
+        if (!empty($data['password']) && !Hash::needsRehash($data['password'])) {
+            // Password sudah di-hash, biarkan apa adanya
+        } else if (!empty($data['password'])) {
+            // Password belum di-hash, hash sekarang
+            $data['password'] = Hash::make($data['password']);
+        }
 
         // Set default role jika tidak ada
         if (!isset($data['role'])) {

@@ -199,4 +199,7 @@
             </div>
         </div>
     </div>
+
+    <!-- Debug Script for User Create -->
+    <script src="{{ asset('js/user-create-debug.js') }}"></script>
 </x-layouts.admin>

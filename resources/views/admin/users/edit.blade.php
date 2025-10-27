@@ -65,6 +65,23 @@
                             </flux:field>
                         </div>
 
+                        <!-- Phone -->
+                        <div>
+                            <flux:field>
+                                <flux:label>Phone Number</flux:label>
+                                <flux:input
+                                    name="phone"
+                                    type="tel"
+                                    placeholder="e.g., +62 812 3456 7890"
+                                    value="{{ old('phone', $user->phone ?? '') }}"
+                                />
+                                <flux:description>User's phone number (optional)</flux:description>
+                                @error('phone')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
                         <!-- Role -->
                         <div>
                             <flux:field>
@@ -124,27 +141,29 @@
                     <flux:button type="button" variant="outline" onclick="window.history.back()">
                         Cancel
                     </flux:button>
-
-                    <!-- Delete Button -->
-                    @if($user->id !== auth()->id() && $user->email !== 'admin@pinjemtent.com')
-                        <div class="ml-auto">
-                            <form
-                                method="POST"
-                                action="{{ route('admin.users.destroy', $user) }}"
-                                class="inline"
-                                onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')"
-                            >
-                                @csrf
-                                @method('DELETE')
-                                <flux:button type="submit" variant="danger" class="flex items-center gap-2">
-                                    <flux:icon.trash class="size-4" />
-                                    Delete User
-                                </flux:button>
-                            </form>
-                        </div>
-                    @endif
                 </div>
             </form>
+
+            <!-- Separate Delete Form - OUTSIDE of Update Form -->
+            @if($user->id !== auth()->id() && $user->email !== 'admin@pinjemtent.com')
+                <div class="flex justify-end mt-4">
+                    <form
+                        method="POST"
+                        action="{{ route('admin.users.destroy', $user) }}"
+                        class="inline"
+                        data-user-id="{{ $user->id }}"
+                        data-user-name="{{ $user->name }}"
+                        onsubmit="return debugDeleteUser('{{ $user->id }}', '{{ addslashes($user->name) }}')"
+                    >
+                        @csrf
+                        @method('DELETE')
+                        <flux:button type="submit" variant="danger" class="flex items-center gap-2">
+                            <flux:icon.trash class="size-4" />
+                            Delete User
+                        </flux:button>
+                    </form>
+                </div>
+            @endif
         </div>
 
         <!-- User Activity -->
@@ -236,4 +255,76 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Debug function for user update form
+        function debugUserUpdateForm(formElement) {
+            const formData = new FormData(formElement);
+            console.log('🔄 USER UPDATE Form Debug ===');
+            console.log('IMPORTANT: This is UPDATE operation, NOT DELETE');
+            console.log('Form Action:', formElement.action);
+            console.log('Form Method:', formElement.method);
+
+            // Critical validation - ensure this is update form
+            if (formElement.action.includes('destroy')) {
+                console.error('🚨 CRITICAL ERROR: Update form has DELETE action!');
+                alert('ERROR: Form configuration error detected! This form is trying to DELETE instead of UPDATE. Please contact administrator.');
+                return false; // Prevent submission
+            }
+
+            // Check for proper method override
+            const methodInput = formElement.querySelector('input[name="_method"]');
+            if (methodInput && methodInput.value === 'PUT') {
+                console.log('✅ Correct method override found: PUT');
+            } else {
+                console.warn('⚠️ Method override issue detected');
+            }
+
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}" (${typeof value})`);
+            }
+            console.log('=== End User Update Debug ===');
+            return true; // Allow form submission
+        }
+
+        // Debug function for user delete
+        function debugDeleteUser(userId, userName) {
+            console.group("🗑️ Delete User Debug");
+            console.log("IMPORTANT: This is a DELETE operation, not UPDATE");
+            console.log("User ID:", userId);
+            console.log("User Name:", userName);
+            console.log("Timestamp:", new Date().toISOString());
+            console.log("Action: DELETE USER (Permanent)");
+
+            const confirmed = confirm(
+                `⚠️ DELETE CONFIRMATION ⚠️\n\nAre you sure you want to PERMANENTLY DELETE user "${userName}"?\n\nThis action CANNOT be undone!\n\nClick OK to DELETE or Cancel to abort.`
+            );
+            console.log("User Confirmed Delete:", confirmed);
+            console.groupEnd();
+
+            if (confirmed) {
+                console.warn("🗑️ DELETE CONFIRMED - User will be deleted!");
+            } else {
+                console.log("✅ DELETE CANCELLED - User will not be deleted");
+            }
+
+            return confirmed;
+        }
+
+        // Add form event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const updateForm = document.querySelector('form[action*="users"][method="POST"]:not([action*="destroy"])');
+            if (updateForm) {
+                updateForm.addEventListener('submit', function(e) {
+                    if (!debugUserUpdateForm(this)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Debug Script -->
+    <script src="{{ asset('js/user-debug.js') }}"></script>
 </x-layouts.admin>
