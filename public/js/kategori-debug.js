@@ -1,12 +1,12 @@
 /**
- * Unit Management Debug Script
- * Membantu debugging masalah edit dan delete unit
+ * Kategori Management Debug Script
+ * Membantu debugging masalah edit dan delete kategori
  */
 
 // Debug Form Data saat Submit
-function debugUnitForm(formElement) {
+function debugKategoriForm(formElement) {
     const formData = new FormData(formElement);
-    console.group("🔍 Unit Form Debug");
+    console.group("🔍 Kategori Form Debug");
     console.log("Form Element:", formElement);
     console.log("Form Action:", formElement.action);
     console.log("Form Method:", formElement.method);
@@ -17,7 +17,7 @@ function debugUnitForm(formElement) {
     }
 
     // Validasi khusus untuk field yang sering bermasalah
-    const problemFields = ["stok", "kode_unit", "nama_unit"];
+    const problemFields = ["nama_kategori", "deskripsi"];
     problemFields.forEach((field) => {
         const input = formElement.querySelector(`[name="${field}"]`);
         if (input) {
@@ -36,15 +36,14 @@ function debugUnitForm(formElement) {
 }
 
 // Separate debug function for UPDATE form specifically
-function debugUnitUpdateForm(formElement) {
+function debugKategoriUpdateForm(formElement) {
     const formData = new FormData(formElement);
-    console.group("🔄 Unit UPDATE Form Debug");
+    console.group("🔄 Kategori UPDATE Form Debug");
     console.log("IMPORTANT: This is an UPDATE operation, not DELETE");
-    console.log("Action: UPDATE UNIT");
+    console.log("Action: UPDATE KATEGORI");
     console.log("Form Element:", formElement);
     console.log("Form Action:", formElement.action);
     console.log("Form Method:", formElement.method);
-    console.log("Should contain @method('PUT') or _method=PUT");
 
     // Check for PUT method
     const methodInput = formElement.querySelector('input[name="_method"]');
@@ -71,32 +70,34 @@ function debugUnitUpdateForm(formElement) {
     console.log("✅ UPDATE form validation passed");
     console.groupEnd();
     return true; // Allow form submission
-} // Debug Delete Action
-function debugDeleteUnit(unitId, unitName) {
-    console.group("🗑️ Delete Unit Debug");
+}
+
+// Debug Delete Action
+function debugDeleteKategori(kategoriId, kategoriName) {
+    console.group("🗑️ Delete Kategori Debug");
     console.log("IMPORTANT: This is a DELETE operation, not UPDATE");
-    console.log("Unit ID:", unitId);
-    console.log("Unit Name:", unitName);
+    console.log("Kategori ID:", kategoriId);
+    console.log("Kategori Name:", kategoriName);
     console.log("Timestamp:", new Date().toISOString());
-    console.log("Action: DELETE UNIT (Permanent)");
+    console.log("Action: DELETE KATEGORI (Permanent)");
 
     const confirmed = confirm(
-        `⚠️ DELETE CONFIRMATION ⚠️\n\nAre you sure you want to PERMANENTLY DELETE unit "${unitName}"?\n\nThis action CANNOT be undone!\n\nClick OK to DELETE or Cancel to abort.`
+        `⚠️ DELETE CONFIRMATION ⚠️\n\nAre you sure you want to PERMANENTLY DELETE category "${kategoriName}"?\n\nThis action CANNOT be undone!\n\nClick OK to DELETE or Cancel to abort.`
     );
     console.log("User Confirmed Delete:", confirmed);
     console.groupEnd();
 
     if (confirmed) {
-        console.warn("🗑️ DELETE CONFIRMED - Unit will be deleted!");
+        console.warn("🗑️ DELETE CONFIRMED - Kategori will be deleted!");
     } else {
-        console.log("✅ DELETE CANCELLED - Unit will not be deleted");
+        console.log("✅ DELETE CANCELLED - Kategori will not be deleted");
     }
 
     return confirmed;
 }
 
 // Monitor AJAX Requests
-function setupAjaxDebug() {
+function setupKategoriAjaxDebug() {
     const originalFetch = window.fetch;
     window.fetch = function (...args) {
         console.log("🌐 AJAX Request:", args);
@@ -114,8 +115,8 @@ function setupAjaxDebug() {
 }
 
 // Check for Common Issues
-function checkUnitPageIssues() {
-    console.group("🔧 Unit Page Health Check");
+function checkKategoriPageIssues() {
+    console.group("🔧 Kategori Page Health Check");
 
     // Check for missing icons
     const fluxIcons = document.querySelectorAll('[class*="flux:icon"]');
@@ -146,19 +147,19 @@ function checkUnitPageIssues() {
     console.groupEnd();
 }
 
-// Stock Validation Helper
-function validateStock(input, minValue = 1) {
-    const value = parseInt(input.value);
-    const isValid = !isNaN(value) && value >= minValue;
+// Name Validation Helper
+function validateKategoriName(input, minLength = 1) {
+    const value = input.value.trim();
+    const isValid = value.length >= minLength;
 
     if (!isValid) {
         input.style.borderColor = "#ef4444";
         input.style.boxShadow = "0 0 0 1px #ef4444";
-        console.warn("❌ Invalid stock value:", input.value);
+        console.warn("❌ Invalid kategori name:", input.value);
     } else {
         input.style.borderColor = "";
         input.style.boxShadow = "";
-        console.log("✅ Stock value valid:", value);
+        console.log("✅ Kategori name valid:", value);
     }
 
     return isValid;
@@ -166,54 +167,56 @@ function validateStock(input, minValue = 1) {
 
 // Initialize Debug Features
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("🚀 Unit Debug Script Loaded");
+    console.log("🚀 Kategori Debug Script Loaded");
 
     // Setup AJAX monitoring
-    setupAjaxDebug();
+    setupKategoriAjaxDebug();
 
     // Run health check
-    checkUnitPageIssues();
+    checkKategoriPageIssues();
 
     // Add form debugging to all forms
     document.querySelectorAll("form").forEach((form) => {
         form.addEventListener("submit", function (e) {
-            console.log("📤 Form Submit Event:", e);
-            debugUnitForm(this);
+            console.log("📤 Kategori Form Submit Event:", e);
+            debugKategoriForm(this);
         });
     });
 
-    // Add stock validation to stock inputs
-    document.querySelectorAll('input[name="stok"]').forEach((input) => {
-        input.addEventListener("blur", function () {
-            validateStock(this);
-        });
+    // Add name validation to kategori name inputs
+    document
+        .querySelectorAll('input[name="nama_kategori"]')
+        .forEach((input) => {
+            input.addEventListener("blur", function () {
+                validateKategoriName(this);
+            });
 
-        input.addEventListener("input", function () {
-            // Real-time validation
-            setTimeout(() => validateStock(this), 300);
+            input.addEventListener("input", function () {
+                // Real-time validation
+                setTimeout(() => validateKategoriName(this), 300);
+            });
         });
-    });
 
     // Enhanced delete confirmation
     document.querySelectorAll('form[action*="destroy"]').forEach((form) => {
         form.addEventListener("submit", function (e) {
-            const unitName = this.dataset.unitName || "this unit";
-            const unitId = this.dataset.unitId || "unknown";
+            const kategoriName = this.dataset.kategoriName || "this category";
+            const kategoriId = this.dataset.kategoriId || "unknown";
 
-            if (!debugDeleteUnit(unitId, unitName)) {
+            if (!debugDeleteKategori(kategoriId, kategoriName)) {
                 e.preventDefault();
                 return false;
             }
         });
     });
 
-    console.log("✅ Unit Debug Features Initialized");
+    console.log("✅ Kategori Debug Features Initialized");
 });
 
 // Export functions for manual testing
-window.unitDebug = {
-    debugUnitForm,
-    debugDeleteUnit,
-    validateStock,
-    checkUnitPageIssues,
+window.kategoriDebug = {
+    debugKategoriForm,
+    debugDeleteKategori,
+    validateKategoriName,
+    checkKategoriPageIssues,
 };

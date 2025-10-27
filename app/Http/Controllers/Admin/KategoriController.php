@@ -9,6 +9,8 @@ use App\Services\Admin\KategoriService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class KategoriController extends Controller
 {
@@ -104,6 +106,21 @@ class KategoriController extends Controller
      */
     public function update(Request $request, Kategori $kategori): RedirectResponse
     {
+        // Log data yang akan diupdate untuk debugging
+        Log::info('🔄 Kategori UPDATE Operation Started (NOT DELETE)', [
+            'operation' => 'UPDATE',
+            'kategori_id' => $kategori->id,
+            'kategori_name' => $kategori->nama_kategori,
+            'route_method' => $request->method(),
+            'route_action' => $request->route()->getActionName(),
+            'old_data' => [
+                'nama_kategori' => $kategori->nama_kategori,
+                'deskripsi' => $kategori->deskripsi,
+            ],
+            'raw_request' => $request->all(),
+            'user_id' => Auth::id()
+        ]);
+
         $validated = $request->validate([
             'nama_kategori' => 'required|string|max:255|unique:kategoris,nama_kategori,' . $kategori->id,
             'deskripsi' => 'nullable|string',
@@ -120,10 +137,24 @@ class KategoriController extends Controller
 
             $updatedKategori = $this->kategoriService->updateKategori($kategori->id, $data);
 
+            Log::info('✅ Kategori UPDATE Successful (NOT DELETE)', [
+                'operation' => 'UPDATE_SUCCESS',
+                'kategori_id' => $kategori->id,
+                'updated_kategori' => $updatedKategori->toArray()
+            ]);
+
             return redirect()
                 ->route('admin.kategoris.show', $updatedKategori)
                 ->with('success', 'Category updated successfully.');
         } catch (\Exception $e) {
+            Log::error('❌ Kategori UPDATE Failed (NOT DELETE)', [
+                'operation' => 'UPDATE_FAILED',
+                'kategori_id' => $kategori->id,
+                'error_message' => $e->getMessage(),
+                'validated_data' => $validated,
+                'user_id' => Auth::id()
+            ]);
+
             return redirect()
                 ->back()
                 ->withInput()
@@ -136,13 +167,35 @@ class KategoriController extends Controller
      */
     public function destroy(Kategori $kategori): RedirectResponse
     {
+        Log::info('🗑️ Kategori DELETE Operation Started (NOT UPDATE)', [
+            'operation' => 'DELETE',
+            'kategori_id' => $kategori->id,
+            'kategori_name' => $kategori->nama_kategori,
+            'units_count' => $kategori->units->count(),
+            'user_id' => Auth::id()
+        ]);
+
         try {
+            $kategoriData = $kategori->toArray(); // Backup data untuk log
             $this->kategoriService->deleteKategori($kategori->id);
+
+            Log::info('🗑️ Kategori DELETE Successful (NOT UPDATE)', [
+                'operation' => 'DELETE_SUCCESS',
+                'deleted_kategori' => $kategoriData,
+                'user_id' => Auth::id()
+            ]);
 
             return redirect()
                 ->route('admin.kategoris.index')
                 ->with('success', 'Category deleted successfully.');
         } catch (\Exception $e) {
+            Log::error('❌ Kategori DELETE Failed (NOT UPDATE)', [
+                'operation' => 'DELETE_FAILED',
+                'kategori_id' => $kategori->id,
+                'error_message' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
             return redirect()
                 ->back()
                 ->with('error', 'Failed to delete category: ' . $e->getMessage());

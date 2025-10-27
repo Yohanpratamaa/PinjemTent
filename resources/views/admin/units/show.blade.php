@@ -232,12 +232,12 @@
                             Edit Unit
                         </flux:button>
 
-                        @if($unit->status === 'tersedia')
+                        {{-- @if($unit->status === 'tersedia')
                             <flux:button variant="outline" class="w-full flex items-center gap-2">
                                 <flux:icon.plus class="size-4" />
                                 Create Rental
                             </flux:button>
-                        @endif
+                        @endif --}}
 
                         <form
                             method="POST"
@@ -247,8 +247,10 @@
                             @csrf
                             @method('DELETE')
                             <flux:button type="submit" variant="danger" class="w-full flex items-center gap-2">
-                                <flux:icon.trash class="size-4" />
-                                Delete Unit
+                                <div class="flex items-center gap-2">
+                                    <flux:icon.trash class="size-4" />
+                                    Delete Unit
+                                </div>
                             </flux:button>
                         </form>
                     </div>

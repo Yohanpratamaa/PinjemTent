@@ -114,29 +114,31 @@
                             <span>Cancel</span>
                         </div>
                     </flux:button>
-
-                    <!-- Delete Button -->
-                    @if($kategori->units->count() === 0)
-                        <div class="ml-auto">
-                            <form
-                                method="POST"
-                                action="{{ route('admin.kategoris.destroy', $kategori) }}"
-                                class="inline"
-                                onsubmit="return confirm('Are you sure you want to delete this category? This action cannot be undone.')"
-                            >
-                                @csrf
-                                @method('DELETE')
-                                <flux:button type="submit" variant="danger">
-                                    <div class="flex items-center gap-2">
-                                        <flux:icon.trash class="size-4" />
-                                        <span>Delete Category</span>
-                                    </div>
-                                </flux:button>
-                            </form>
-                        </div>
-                    @endif
                 </div>
             </form>
+
+            <!-- Separate Delete Form - OUTSIDE of Update Form -->
+            @if($kategori->units->count() === 0)
+                <div class="flex justify-end mt-4">
+                    <form
+                        method="POST"
+                        action="{{ route('admin.kategoris.destroy', $kategori) }}"
+                        class="inline"
+                        data-kategori-id="{{ $kategori->id }}"
+                        data-kategori-name="{{ $kategori->nama_kategori }}"
+                        onsubmit="return debugDeleteKategori('{{ $kategori->id }}', '{{ addslashes($kategori->nama_kategori) }}')"
+                    >
+                        @csrf
+                        @method('DELETE')
+                        <flux:button type="submit" variant="danger">
+                            <div class="flex items-center gap-2">
+                                <flux:icon.trash class="size-4" />
+                                <span>Delete Category</span>
+                            </div>
+                        </flux:button>
+                    </form>
+                </div>
+            @endif
         </div>
 
         <!-- Category Statistics -->
@@ -160,4 +162,76 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Debug function for category update form
+        function debugKategoriUpdateForm(formElement) {
+            const formData = new FormData(formElement);
+            console.log('🔄 KATEGORI UPDATE Form Debug ===');
+            console.log('IMPORTANT: This is UPDATE operation, NOT DELETE');
+            console.log('Form Action:', formElement.action);
+            console.log('Form Method:', formElement.method);
+
+            // Critical validation - ensure this is update form
+            if (formElement.action.includes('destroy')) {
+                console.error('🚨 CRITICAL ERROR: Update form has DELETE action!');
+                alert('ERROR: Form configuration error detected! This form is trying to DELETE instead of UPDATE. Please contact administrator.');
+                return false; // Prevent submission
+            }
+
+            // Check for proper method override
+            const methodInput = formElement.querySelector('input[name="_method"]');
+            if (methodInput && methodInput.value === 'PUT') {
+                console.log('✅ Correct method override found: PUT');
+            } else {
+                console.warn('⚠️ Method override issue detected');
+            }
+
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}" (${typeof value})`);
+            }
+            console.log('=== End Kategori Update Debug ===');
+            return true; // Allow form submission
+        }
+
+        // Debug function for category delete
+        function debugDeleteKategori(kategoriId, kategoriName) {
+            console.group("🗑️ Delete Kategori Debug");
+            console.log("IMPORTANT: This is a DELETE operation, not UPDATE");
+            console.log("Kategori ID:", kategoriId);
+            console.log("Kategori Name:", kategoriName);
+            console.log("Timestamp:", new Date().toISOString());
+            console.log("Action: DELETE KATEGORI (Permanent)");
+
+            const confirmed = confirm(
+                `⚠️ DELETE CONFIRMATION ⚠️\n\nAre you sure you want to PERMANENTLY DELETE category "${kategoriName}"?\n\nThis action CANNOT be undone!\n\nClick OK to DELETE or Cancel to abort.`
+            );
+            console.log("User Confirmed Delete:", confirmed);
+            console.groupEnd();
+
+            if (confirmed) {
+                console.warn("🗑️ DELETE CONFIRMED - Kategori will be deleted!");
+            } else {
+                console.log("✅ DELETE CANCELLED - Kategori will not be deleted");
+            }
+
+            return confirmed;
+        }
+
+        // Add form event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const updateForm = document.querySelector('form[action*="kategoris"][method="POST"]:not([action*="destroy"])');
+            if (updateForm) {
+                updateForm.addEventListener('submit', function(e) {
+                    if (!debugKategoriUpdateForm(this)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Debug Script -->
+    <script src="{{ asset('js/kategori-debug.js') }}"></script>
 </x-layouts.admin>

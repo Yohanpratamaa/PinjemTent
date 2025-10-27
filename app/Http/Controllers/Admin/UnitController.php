@@ -129,9 +129,12 @@ class UnitController extends Controller
         $validated = $request->validated();
 
         // Log data yang akan diupdate untuk debugging
-        Log::info('Unit Update Debug - Complete Data', [
+        Log::info('🔄 Unit UPDATE Operation Started (NOT DELETE)', [
+            'operation' => 'UPDATE',
             'unit_id' => $unit->id,
             'unit_code' => $unit->kode_unit,
+            'route_method' => $request->method(),
+            'route_action' => $request->route()->getActionName(),
             'old_data' => [
                 'kode_unit' => $unit->kode_unit,
                 'nama_unit' => $unit->nama_unit,
@@ -171,7 +174,8 @@ class UnitController extends Controller
 
             $updatedUnit = $this->unitService->updateUnit($unit->id, $data);
 
-            Log::info('Unit Update - Success', [
+            Log::info('✅ Unit UPDATE Successful (NOT DELETE)', [
+                'operation' => 'UPDATE_SUCCESS',
                 'unit_id' => $unit->id,
                 'updated_unit' => $updatedUnit->toArray()
             ]);
@@ -180,7 +184,8 @@ class UnitController extends Controller
                 ->route('admin.units.show', $updatedUnit)
                 ->with('success', 'Unit updated successfully.');
         } catch (\Exception $e) {
-            Log::error('Unit Update - Failed', [
+            Log::error('❌ Unit UPDATE Failed (NOT DELETE)', [
+                'operation' => 'UPDATE_FAILED',
                 'unit_id' => $unit->id,
                 'error_message' => $e->getMessage(),
                 'error_trace' => $e->getTraceAsString(),
@@ -199,7 +204,8 @@ class UnitController extends Controller
      */
     public function destroy(Unit $unit): RedirectResponse
     {
-        Log::info('Unit Delete Attempt', [
+        Log::info('🗑️ Unit DELETE Operation Started (NOT UPDATE)', [
+            'operation' => 'DELETE',
             'unit_id' => $unit->id,
             'unit_code' => $unit->kode_unit,
             'unit_name' => $unit->nama_unit,
@@ -225,7 +231,8 @@ class UnitController extends Controller
             $unitData = $unit->toArray(); // Backup data untuk log
             $this->unitService->deleteUnit($unit->id);
 
-            Log::info('Unit Deleted Successfully', [
+            Log::info('🗑️ Unit DELETE Successful (NOT UPDATE)', [
+                'operation' => 'DELETE_SUCCESS',
                 'deleted_unit' => $unitData,
                 'user_id' => Auth::id()
             ]);
@@ -234,7 +241,8 @@ class UnitController extends Controller
                 ->route('admin.units.index')
                 ->with('success', "Unit '{$unit->nama_unit}' deleted successfully.");
         } catch (\Exception $e) {
-            Log::error('Unit Delete Failed', [
+            Log::error('❌ Unit DELETE Failed (NOT UPDATE)', [
+                'operation' => 'DELETE_FAILED',
                 'unit_id' => $unit->id,
                 'unit_code' => $unit->kode_unit,
                 'error_message' => $e->getMessage(),

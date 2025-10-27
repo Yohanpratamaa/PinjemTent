@@ -281,29 +281,29 @@
                             <span>Cancel</span>
                         </div>
                     </flux:button>
-
-                    <!-- Delete Button -->
-                    <div class="ml-auto">
-                        <form
-                            method="POST"
-                            action="{{ route('admin.units.destroy', $unit) }}"
-                            class="inline"
-                            data-unit-id="{{ $unit->id }}"
-                            data-unit-name="{{ $unit->nama_unit }}"
-                            onsubmit="return debugDeleteUnit('{{ $unit->id }}', '{{ addslashes($unit->nama_unit) }}')"
-                        >
-                            @csrf
-                            @method('DELETE')
-                            <flux:button type="submit" variant="danger">
-                                <div class="flex items-center gap-2">
-                                    <flux:icon.trash class="size-4" />
-                                    <span>Delete Unit</span>
-                                </div>
-                            </flux:button>
-                        </form>
-                    </div>
                 </div>
             </form>
+
+            <!-- Separate Delete Form - OUTSIDE of Update Form -->
+            <div class="flex justify-end mt-4">
+                <form
+                    method="POST"
+                    action="{{ route('admin.units.destroy', $unit) }}"
+                    class="inline"
+                    data-unit-id="{{ $unit->id }}"
+                    data-unit-name="{{ $unit->nama_unit }}"
+                    onsubmit="return debugDeleteUnit('{{ $unit->id }}', '{{ addslashes($unit->nama_unit) }}')"
+                >
+                    @csrf
+                    @method('DELETE')
+                    <flux:button type="submit" variant="danger">
+                        <div class="flex items-center gap-2">
+                            <flux:icon.trash class="size-4" />
+                            <span>Delete Unit</span>
+                        </div>
+                    </flux:button>
+                </form>
+            </div>
         </div>
 
         <!-- Unit Activity History -->
@@ -358,8 +358,24 @@
         function debugUnitUpdateForm(formElement) {
             const formData = new FormData(formElement);
             console.log('🔄 UNIT UPDATE Form Debug ===');
+            console.log('IMPORTANT: This is UPDATE operation, NOT DELETE');
             console.log('Form Action:', formElement.action);
             console.log('Form Method:', formElement.method);
+
+            // Critical validation - ensure this is update form
+            if (formElement.action.includes('destroy')) {
+                console.error('🚨 CRITICAL ERROR: Update form has DELETE action!');
+                alert('ERROR: Form configuration error detected! This form is trying to DELETE instead of UPDATE. Please contact administrator.');
+                return false; // Prevent submission
+            }
+
+            // Check for proper method override
+            const methodInput = formElement.querySelector('input[name="_method"]');
+            if (methodInput && methodInput.value === 'PUT') {
+                console.log('✅ Correct method override found: PUT');
+            } else {
+                console.warn('⚠️ Method override issue detected');
+            }
 
             for (let [key, value] of formData.entries()) {
                 console.log(`${key}: "${value}" (${typeof value})`);
