@@ -3,6 +3,10 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UnitController as AdminUnitController;
+use App\Http\Controllers\Admin\KategoriController as AdminKategoriController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\PeminjamanController as AdminPeminjamanController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -40,8 +44,22 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->name('logout');
 
 // Admin Routes
-Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+Route::middleware(['auth', 'isAdmin'])->prefix('admin')->name('admin.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Unit Management
+    Route::resource('units', AdminUnitController::class);
+
+    // Category Management
+    Route::resource('kategoris', AdminKategoriController::class);
+
+    // User Management
+    Route::resource('users', AdminUserController::class);
+
+    // Rental Management
+    Route::resource('peminjamans', AdminPeminjamanController::class);
+    Route::put('peminjamans/{peminjaman}/return', [AdminPeminjamanController::class, 'returnRental'])->name('peminjamans.return');
 });
 
 // User Routes

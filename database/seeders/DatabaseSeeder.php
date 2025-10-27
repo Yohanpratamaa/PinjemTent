@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         // Seed admin users first
         $this->call([
             AdminSeeder::class,
+            KategoriSeeder::class,
+            UnitSeeder::class,
         ]);
 
         // Create test users
@@ -26,6 +28,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create additional test users if needed
-        // User::factory(10)->create();
+        User::factory(5)->create([
+            'role' => 'user'
+        ]);
     }
 }

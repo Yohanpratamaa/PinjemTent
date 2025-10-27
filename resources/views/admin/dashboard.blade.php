@@ -1,4 +1,4 @@
-<x-layouts.app :title="__('Admin Dashboard')">
+<x-layouts.admin :title="__('Admin Dashboard')">
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <!-- Welcome Admin Section -->
         <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
