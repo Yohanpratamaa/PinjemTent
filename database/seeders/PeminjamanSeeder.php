@@ -50,14 +50,34 @@ class PeminjamanSeeder extends Seeder
                     $tanggalKembaliAktual = $tanggalKembaliRencana->copy()->addDays(rand(1, 5));
                 }
 
+                // Calculate pricing based on unit's pricing
+                $hargaSewaPerHari = $unit->harga_sewa_per_hari ?? 50000;
+                $jumlahHari = $tanggalPinjam->diffInDays($tanggalKembaliRencana) + 1;
+                $hargaSewaTotal = $hargaSewaPerHari * $jumlahHari;
+
+                // Calculate late fees if applicable
+                $dendaTotal = 0;
+                if ($status === 'terlambat' && $tanggalKembaliAktual) {
+                    $hariTerlambat = max(0, $tanggalKembaliAktual->diffInDays($tanggalKembaliRencana));
+                    $dendaPerHari = $unit->denda_per_hari ?? 10000;
+                    $dendaTotal = $hariTerlambat * $dendaPerHari;
+                }
+
+                $totalBayar = $hargaSewaTotal + $dendaTotal;
+
                 $peminjamans[] = [
                     'user_id' => $user->id,
                     'unit_id' => $unit->id,
+                    'kode_peminjaman' => 'PJM-' . $tanggalPinjam->format('Ymd') . '-' . str_pad($i + 1, 3, '0', STR_PAD_LEFT),
                     'tanggal_pinjam' => $tanggalPinjam,
                     'tanggal_kembali_rencana' => $tanggalKembaliRencana,
                     'tanggal_kembali_aktual' => $tanggalKembaliAktual,
                     'status' => $status,
-                    'catatan' => 'Peminjaman ' . $unit->nama_unit . ' oleh ' . $user->name,
+                    'harga_sewa_total' => $hargaSewaTotal,
+                    'denda_total' => $dendaTotal,
+                    'total_bayar' => $totalBayar,
+                    'catatan_peminjam' => 'Peminjaman ' . $unit->nama_unit . ' untuk keperluan camping',
+                    'catatan_admin' => $status === 'terlambat' ? 'Terlambat ' . ($tanggalKembaliAktual ? $tanggalKembaliAktual->diffInDays($tanggalKembaliRencana) : 0) . ' hari' : null,
                     'created_at' => $tanggalPinjam,
                     'updated_at' => $tanggalKembaliAktual ?? $tanggalPinjam,
                 ];

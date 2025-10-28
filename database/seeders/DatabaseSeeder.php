@@ -13,26 +13,34 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed admin users first
+        // Seed basic data first (categories, admin users)
         $this->call([
             AdminSeeder::class,
             KategoriSeeder::class,
             UnitSeeder::class,
         ]);
 
-        // Create test users
+        // Create test users with phone field
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'phone' => '081234567892',
             'role' => 'user', // Explicitly set role
         ]);
 
         // Create additional test users if needed
         User::factory(5)->create([
-            'role' => 'user'
+            'role' => 'user',
         ]);
 
-        // Seed sample rental data
+        // Add specific test users for development
+        if (app()->environment('local')) {
+            $this->call([
+                TestUsersSeeder::class,
+            ]);
+        }
+
+        // Seed sample rental data after users and units exist
         $this->call([
             PeminjamanSeeder::class,
         ]);

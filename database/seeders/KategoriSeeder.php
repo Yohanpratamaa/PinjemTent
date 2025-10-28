@@ -16,31 +16,31 @@ class KategoriSeeder extends Seeder
         $kategoris = [
             [
                 'nama_kategori' => 'Tenda Camping',
-                'deskripsi' => 'Tenda untuk kegiatan camping dan outdoor',
+                'deskripsi_kategori' => 'Tenda untuk kegiatan camping dan outdoor',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'nama_kategori' => 'Alat Masak',
-                'deskripsi' => 'Peralatan memasak untuk camping',
+                'deskripsi_kategori' => 'Peralatan memasak untuk camping',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'nama_kategori' => 'Tas Carrier',
-                'deskripsi' => 'Tas besar untuk membawa perlengkapan camping',
+                'deskripsi_kategori' => 'Tas besar untuk membawa perlengkapan camping',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'nama_kategori' => 'Sleeping Bag',
-                'deskripsi' => 'Kantung tidur untuk camping',
+                'deskripsi_kategori' => 'Kantung tidur untuk camping',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'nama_kategori' => 'Alat Navigasi',
-                'deskripsi' => 'Kompas, GPS dan alat navigasi lainnya',
+                'deskripsi_kategori' => 'Kompas, GPS dan alat navigasi lainnya',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

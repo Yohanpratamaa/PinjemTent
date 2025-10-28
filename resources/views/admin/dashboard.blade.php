@@ -31,7 +31,7 @@
             />
 
             <x-admin.stats-card
-                title="Barang Tersedia"
+                title="Stok Barang Tersedia"
                 :value="number_format($unitsAvailable)"
                 icon="check-circle"
                 color="green"

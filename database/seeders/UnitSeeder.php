@@ -128,32 +128,35 @@ class UnitSeeder extends Seeder
         $kategoris = Kategori::all();
         $units = Unit::all();
 
-        // Tenda Dome - Kategori Tenda Camping
-        $units->where('kode_unit', 'TND-001')->first()
-            ->kategoris()->attach($kategoris->where('nama_kategori', 'Tenda Camping')->first()->id);
+        if ($kategoris->isEmpty() || $units->isEmpty()) {
+            return; // Skip if no categories or units exist
+        }
 
-        // Tenda Tunnel - Kategori Tenda Camping
-        $units->where('kode_unit', 'TND-002')->first()
-            ->kategoris()->attach($kategoris->where('nama_kategori', 'Tenda Camping')->first()->id);
+        // Get category IDs for easier access
+        $tendaCampingId = $kategoris->where('nama_kategori', 'Tenda Camping')->first()?->id;
+        $alatMasakId = $kategoris->where('nama_kategori', 'Alat Masak')->first()?->id;
+        $tasCarrierId = $kategoris->where('nama_kategori', 'Tas Carrier')->first()?->id;
+        $sleepingBagId = $kategoris->where('nama_kategori', 'Sleeping Bag')->first()?->id;
+        $alatNavigasiId = $kategoris->where('nama_kategori', 'Alat Navigasi')->first()?->id;
 
-        // Kompor Portable - Kategori Alat Masak
-        $units->where('kode_unit', 'MSK-001')->first()
-            ->kategoris()->attach($kategoris->where('nama_kategori', 'Alat Masak')->first()->id);
+        // Attach categories to units if both exist
+        $mappings = [
+            'TND-001' => $tendaCampingId,  // Tenda Dome
+            'TND-002' => $tendaCampingId,  // Tenda Tunnel
+            'MSK-001' => $alatMasakId,     // Kompor Portable
+            'MSK-002' => $alatMasakId,     // Nesting Set
+            'CAR-001' => $tasCarrierId,    // Tas Carrier
+            'SLP-001' => $sleepingBagId,   // Sleeping Bag
+            'NAV-001' => $alatNavigasiId,  // Kompas Digital
+        ];
 
-        // Nesting Set - Kategori Alat Masak
-        $units->where('kode_unit', 'MSK-002')->first()
-            ->kategoris()->attach($kategoris->where('nama_kategori', 'Alat Masak')->first()->id);
-
-        // Tas Carrier - Kategori Tas Carrier
-        $units->where('kode_unit', 'CAR-001')->first()
-            ->kategoris()->attach($kategoris->where('nama_kategori', 'Tas Carrier')->first()->id);
-
-        // Sleeping Bag - Kategori Sleeping Bag
-        $units->where('kode_unit', 'SLP-001')->first()
-            ->kategoris()->attach($kategoris->where('nama_kategori', 'Sleeping Bag')->first()->id);
-
-        // Kompas Digital - Kategori Alat Navigasi
-        $units->where('kode_unit', 'NAV-001')->first()
-            ->kategoris()->attach($kategoris->where('nama_kategori', 'Alat Navigasi')->first()->id);
+        foreach ($mappings as $kodeUnit => $kategoriId) {
+            if ($kategoriId) {
+                $unit = $units->where('kode_unit', $kodeUnit)->first();
+                if ($unit) {
+                    $unit->kategoris()->attach($kategoriId);
+                }
+            }
+        }
     }
 }

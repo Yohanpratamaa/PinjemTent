@@ -20,6 +20,7 @@ class AdminSeeder extends Seeder
             [
                 'name' => 'Administrator',
                 'email' => 'admin@pinjemtent.com',
+                'phone' => '081234567890', // Added phone field
                 'password' => Hash::make('password'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
@@ -32,6 +33,7 @@ class AdminSeeder extends Seeder
             [
                 'name' => 'Super Administrator',
                 'email' => 'superadmin@pinjemtent.com',
+                'phone' => '081234567891', // Added phone field
                 'password' => Hash::make('superpassword'),
                 'role' => 'admin',
                 'email_verified_at' => now(),

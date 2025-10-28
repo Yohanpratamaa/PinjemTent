@@ -66,10 +66,10 @@
                     <flux:button type="button" variant="ghost" onclick="window.location.href='{{ route('admin.peminjamans.index') }}'">
                         Clear Filters
                     </flux:button>
-                    <flux:button type="button" variant="outline">
+                    {{-- <flux:button type="button" variant="outline">
                         <flux:icon.document-arrow-down class="size-4" />
                         Export
-                    </flux:button>
+                    </flux:button> --}}
                 </div>
             </form>
         </div>
