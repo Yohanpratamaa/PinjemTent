@@ -31,12 +31,19 @@ class PeminjamanController extends Controller
 
         $peminjamans = $this->peminjamanService->getAllPeminjaman($filters, 15);
 
-        // Get statistics
+        // Get statistics with Indonesian status values
         $stats = [
-            'active' => Peminjaman::where('status', 'active')->count(),
-            'returned' => Peminjaman::where('status', 'returned')->count(),
-            'overdue' => Peminjaman::where('status', 'overdue')->count(),
-            'monthly_revenue' => 0, // TODO: calculate based on total_biaya
+            'dipinjam' => Peminjaman::where('status', 'dipinjam')->count(),
+            'dikembalikan' => Peminjaman::where('status', 'dikembalikan')->count(),
+            'terlambat' => Peminjaman::where('status', 'terlambat')->count(),
+            'monthly_revenue' => Peminjaman::whereMonth('created_at', now()->month)
+                                         ->whereYear('created_at', now()->year)
+                                         ->sum('total_bayar'),
+            'monthly_revenue_formatted' => \App\Helpers\CurrencyHelper::formatIDR(
+                Peminjaman::whereMonth('created_at', now()->month)
+                          ->whereYear('created_at', now()->year)
+                          ->sum('total_bayar')
+            ),
         ];
 
         return view('admin.peminjamans.index', compact('peminjamans', 'stats'));
@@ -60,10 +67,9 @@ class PeminjamanController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'unit_id' => 'required|exists:units,id',
-            'jumlah' => 'required|integer|min:1',
             'tanggal_pinjam' => 'required|date',
             'tanggal_kembali_rencana' => 'required|date|after:tanggal_pinjam',
-            'total_biaya' => 'nullable|numeric|min:0',
+            'catatan' => 'nullable|string|max:500',
         ]);
 
         try {
@@ -71,7 +77,7 @@ class PeminjamanController extends Controller
 
             return redirect()
                 ->route('admin.peminjamans.show', $peminjaman)
-                ->with('success', 'Rental created successfully.');
+                ->with('success', 'Rental created successfully. Total amount: ' . $peminjaman->getFormattedTotalBayar());
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -107,20 +113,30 @@ class PeminjamanController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'unit_id' => 'required|exists:units,id',
-            'jumlah' => 'required|integer|min:1',
             'tanggal_pinjam' => 'required|date',
             'tanggal_kembali_rencana' => 'required|date|after:tanggal_pinjam',
-            'total_biaya' => 'nullable|numeric|min:0',
-            'denda' => 'nullable|numeric|min:0',
+            'catatan_peminjam' => 'nullable|string|max:500',
+            'catatan_admin' => 'nullable|string|max:500',
         ]);
 
         try {
-            // For now, we'll use a simple approach since updatePeminjaman doesn't exist
+            // Recalculate amounts if dates changed
+            if ($peminjaman->tanggal_pinjam != $validated['tanggal_pinjam'] ||
+                $peminjaman->tanggal_kembali_rencana != $validated['tanggal_kembali_rencana']) {
+
+                $tanggalPinjam = \Carbon\Carbon::parse($validated['tanggal_pinjam']);
+                $tanggalKembaliRencana = \Carbon\Carbon::parse($validated['tanggal_kembali_rencana']);
+                $jumlahHari = $tanggalPinjam->diffInDays($tanggalKembaliRencana) + 1;
+
+                $validated['harga_sewa_total'] = $peminjaman->unit->harga_sewa_per_hari * $jumlahHari;
+                $validated['total_bayar'] = $validated['harga_sewa_total'] + $peminjaman->denda_total;
+            }
+
             $peminjaman->update($validated);
 
             return redirect()
                 ->route('admin.peminjamans.show', $peminjaman)
-                ->with('success', 'Rental updated successfully.');
+                ->with('success', 'Rental updated successfully. Total amount: ' . $peminjaman->getFormattedTotalBayar());
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -151,17 +167,27 @@ class PeminjamanController extends Controller
     /**
      * Mark peminjaman as returned.
      */
-    public function returnRental(Peminjaman $peminjaman): RedirectResponse
+    public function returnRental(Request $request, Peminjaman $peminjaman): RedirectResponse
     {
+        $validated = $request->validate([
+            'catatan_admin' => 'nullable|string|max:500',
+        ]);
+
         try {
-            $this->peminjamanService->prosesKembalikan($peminjaman->id, [
-                'tanggal_kembali' => now(),
-                'status' => 'dikembalikan'
-            ]);
+            $this->peminjamanService->prosesKembalikan($peminjaman->id, $validated);
+
+            // Reload peminjaman to get updated data
+            $peminjaman->refresh();
+
+            $message = 'Rental marked as returned successfully.';
+            if ($peminjaman->denda_total > 0) {
+                $message .= ' Late fee applied: ' . $peminjaman->getFormattedDendaTotal();
+            }
+            $message .= ' Total amount: ' . $peminjaman->getFormattedTotalBayar();
 
             return redirect()
                 ->route('admin.peminjamans.show', $peminjaman)
-                ->with('success', 'Rental marked as returned successfully.');
+                ->with('success', $message);
         } catch (\Exception $e) {
             return redirect()
                 ->back()

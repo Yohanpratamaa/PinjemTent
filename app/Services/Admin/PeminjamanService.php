@@ -73,24 +73,57 @@ class PeminjamanService
             throw new Exception('User sudah meminjam unit ini dan belum mengembalikan');
         }
 
-        // Buat peminjaman
+        // Generate kode peminjaman
+        $kodePeminjaman = $this->generateKodePeminjaman();
+
+        // Hitung nilai finansial berdasarkan unit dan durasi
+        $tanggalPinjam = \Carbon\Carbon::parse($data['tanggal_pinjam']);
+        $tanggalKembaliRencana = \Carbon\Carbon::parse($data['tanggal_kembali_rencana']);
+        $jumlahHari = $tanggalPinjam->diffInDays($tanggalKembaliRencana) + 1;
+
+        $hargaSewaTotal = $unit->harga_sewa_per_hari * $jumlahHari;
+        $dendaTotal = 0; // Awal belum ada denda
+        $totalBayar = $hargaSewaTotal + $dendaTotal;
+
+        // Buat peminjaman dengan perhitungan finansial
         $peminjaman = $this->peminjamanRepository->create([
+            'kode_peminjaman' => $kodePeminjaman,
             'user_id' => $data['user_id'],
             'unit_id' => $data['unit_id'],
             'tanggal_pinjam' => $data['tanggal_pinjam'],
             'tanggal_kembali_rencana' => $data['tanggal_kembali_rencana'],
+            'harga_sewa_total' => $hargaSewaTotal,
+            'denda_total' => $dendaTotal,
+            'total_bayar' => $totalBayar,
             'status' => 'dipinjam',
-            'catatan' => $data['catatan'] ?? null
+            'catatan_peminjam' => $data['catatan'] ?? null,
+            'catatan_admin' => null
         ]);
 
-        // Update status unit menjadi dipinjam
-        $this->unitRepository->updateStatus($data['unit_id'], 'dipinjam');
+        // Update status unit menjadi dipinjam dan kurangi stok
+        $this->unitRepository->update($unit->id, [
+            'status' => 'dipinjam',
+            'stok' => $unit->stok - 1
+        ]);
 
         return $peminjaman;
     }
 
     /**
-     * Proses pengembalian unit oleh admin
+     * Generate kode peminjaman unik
+     */
+    private function generateKodePeminjaman(): string
+    {
+        $prefix = 'PJM';
+        $date = now()->format('Ymd');
+        $count = $this->peminjamanRepository->getAll()->where('created_at', '>=', now()->startOfDay())->count() + 1;
+        $sequence = str_pad($count, 3, '0', STR_PAD_LEFT);
+
+        return $prefix . $date . $sequence;
+    }
+
+    /**
+     * Proses pengembalian unit oleh admin dengan perhitungan denda
      */
     public function prosesKembalikan(int $id, array $data = []): bool
     {
@@ -99,16 +132,41 @@ class PeminjamanService
             throw new Exception('Peminjaman tidak ditemukan');
         }
 
-        if ($peminjaman->status !== 'dipinjam') {
+        if ($peminjaman->status !== 'dipinjam' && $peminjaman->status !== 'terlambat') {
             throw new Exception('Peminjaman sudah dikembalikan atau status tidak valid');
         }
 
+        $tanggalKembaliAktual = now();
+        $unit = $peminjaman->unit;
+
+        // Hitung denda jika terlambat
+        $dendaTotal = 0;
+        if ($tanggalKembaliAktual > $peminjaman->tanggal_kembali_rencana) {
+            $hariTerlambat = $peminjaman->tanggal_kembali_rencana->diffInDays($tanggalKembaliAktual);
+            $dendaTotal = $unit->denda_per_hari * $hariTerlambat;
+        }
+
+        // Update total bayar dengan denda
+        $totalBayar = $peminjaman->harga_sewa_total + $dendaTotal;
+
+        // Data untuk update
+        $updateData = [
+            'tanggal_kembali_aktual' => $tanggalKembaliAktual,
+            'denda_total' => $dendaTotal,
+            'total_bayar' => $totalBayar,
+            'status' => 'dikembalikan',
+            'catatan_admin' => $data['catatan_admin'] ?? null
+        ];
+
         // Proses pengembalian
-        $result = $this->peminjamanRepository->prosesKembalikan($id, $data);
+        $result = $this->peminjamanRepository->update($id, $updateData);
 
         if ($result) {
-            // Update status unit menjadi tersedia
-            $this->unitRepository->updateStatus($peminjaman->unit_id, 'tersedia');
+            // Update status unit menjadi tersedia dan tambah stok
+            $this->unitRepository->update($unit->id, [
+                'status' => 'tersedia',
+                'stok' => $unit->stok + 1
+            ]);
         }
 
         return $result;

@@ -29,10 +29,11 @@
                     <div>
                         <flux:select name="status" placeholder="Filter by status">
                             <option value="">All Status</option>
-                            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="returned" {{ request('status') === 'returned' ? 'selected' : '' }}>Returned</option>
-                            <option value="overdue" {{ request('status') === 'overdue' ? 'selected' : '' }}>Overdue</option>
-                            <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="dipinjam" {{ request('status') === 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                            <option value="dikembalikan" {{ request('status') === 'dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
+                            <option value="terlambat" {{ request('status') === 'terlambat' ? 'selected' : '' }}>Terlambat</option>
+                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="dibatalkan" {{ request('status') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                         </flux:select>
                     </div>
 
@@ -95,7 +96,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Active</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['active'] ?? 0 }}</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['dipinjam'] ?? 0 }}</p>
                     </div>
                 </div>
             </div>
@@ -107,7 +108,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Returned</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['returned'] ?? 0 }}</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['dikembalikan'] ?? 0 }}</p>
                     </div>
                 </div>
             </div>
@@ -119,7 +120,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Overdue</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['overdue'] ?? 0 }}</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['terlambat'] ?? 0 }}</p>
                     </div>
                 </div>
             </div>
@@ -132,7 +133,7 @@
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Monthly Revenue</p>
                         <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                            ${{ number_format($stats['monthly_revenue'] ?? 0, 0) }}
+                            {{ $stats['monthly_revenue_formatted'] ?? 'Rp0' }}
                         </p>
                     </div>
                 </div>
@@ -223,16 +224,16 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @switch($peminjaman->status)
-                                            @case('active')
-                                                <flux:badge color="blue">Active</flux:badge>
+                                            @case('dipinjam')
+                                                <flux:badge color="green">Active</flux:badge>
                                                 @break
-                                            @case('returned')
-                                                <flux:badge color="green">Returned</flux:badge>
+                                            @case('dikembalikan')
+                                                <flux:badge color="purple">Returned</flux:badge>
                                                 @break
-                                            @case('overdue')
+                                            @case('terlambat')
                                                 <flux:badge color="red">Overdue</flux:badge>
                                                 @break
-                                            @case('cancelled')
+                                            @case('dibatalkan')
                                                 <flux:badge color="gray">Cancelled</flux:badge>
                                                 @break
                                             @default
@@ -241,11 +242,11 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                            ${{ number_format($peminjaman->total_biaya ?? 0, 2) }}
+                                            {{ $peminjaman->getFormattedTotalBayar() }}
                                         </div>
-                                        @if($peminjaman->denda && $peminjaman->denda > 0)
+                                        @if($peminjaman->denda_total && $peminjaman->denda_total > 0)
                                             <div class="text-sm text-red-600 dark:text-red-400">
-                                                Fine: ${{ number_format($peminjaman->denda, 2) }}
+                                                Denda: {{ \App\Helpers\CurrencyHelper::formatIDR($peminjaman->denda_total) }}
                                             </div>
                                         @endif
                                     </td>
@@ -260,7 +261,7 @@
                                                 <flux:icon.eye class="size-4" />
                                             </flux:button>
 
-                                            @if($peminjaman->status === 'active')
+                                            @if($peminjaman->status === 'dipinjam')
                                                 <form
                                                     method="POST"
                                                     action="{{ route('admin.peminjamans.return', $peminjaman) }}"

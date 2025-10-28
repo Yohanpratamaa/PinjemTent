@@ -26,17 +26,25 @@ class Peminjaman extends Model
     protected $fillable = [
         'user_id',
         'unit_id',
+        'kode_peminjaman',
         'tanggal_pinjam',
         'tanggal_kembali_rencana',
         'tanggal_kembali_aktual',
         'status',
-        'catatan'
+        'harga_sewa_total',
+        'denda_total',
+        'total_bayar',
+        'catatan_peminjam',
+        'catatan_admin'
     ];
 
     protected $casts = [
         'tanggal_pinjam' => 'date',
         'tanggal_kembali_rencana' => 'date',
-        'tanggal_kembali_aktual' => 'date'
+        'tanggal_kembali_aktual' => 'date',
+        'harga_sewa_total' => 'decimal:2',
+        'denda_total' => 'decimal:2',
+        'total_bayar' => 'decimal:2'
     ];
 
     /**
@@ -90,5 +98,80 @@ class Peminjaman extends Model
     {
         return $this->status === 'dipinjam' &&
                $this->tanggal_kembali_rencana < now();
+    }
+
+    /**
+     * Calculate rental days from tanggal_pinjam to tanggal_kembali_rencana
+     */
+    public function calculateRentalDays(): int
+    {
+        return $this->tanggal_pinjam->diffInDays($this->tanggal_kembali_rencana) + 1;
+    }
+
+    /**
+     * Calculate late days if returned late
+     */
+    public function calculateLateDays(): int
+    {
+        if (!$this->tanggal_kembali_aktual || $this->tanggal_kembali_aktual <= $this->tanggal_kembali_rencana) {
+            return 0;
+        }
+        return $this->tanggal_kembali_rencana->diffInDays($this->tanggal_kembali_aktual);
+    }
+
+    /**
+     * Calculate total rental cost based on unit price and rental days
+     */
+    public function calculateHargaSewaTotal(): float
+    {
+        $hargaPerHari = $this->unit->harga_sewa_per_hari ?? 50000;
+        $jumlahHari = $this->calculateRentalDays();
+        return $hargaPerHari * $jumlahHari;
+    }
+
+    /**
+     * Calculate late fee based on unit late fee and late days
+     */
+    public function calculateDendaTotal(): float
+    {
+        if ($this->status !== 'terlambat' && !$this->tanggal_kembali_aktual) {
+            return 0;
+        }
+
+        $dendaPerHari = $this->unit->denda_per_hari ?? 10000;
+        $hariTerlambat = $this->calculateLateDays();
+        return $dendaPerHari * $hariTerlambat;
+    }
+
+    /**
+     * Calculate total amount to pay (rental + late fees)
+     */
+    public function calculateTotalBayar(): float
+    {
+        return $this->calculateHargaSewaTotal() + $this->calculateDendaTotal();
+    }
+
+    /**
+     * Format currency to IDR
+     */
+    public function getFormattedHargaSewaTotal(): string
+    {
+        return 'Rp ' . number_format($this->harga_sewa_total ?? $this->calculateHargaSewaTotal(), 0, ',', '.');
+    }
+
+    /**
+     * Format denda to IDR
+     */
+    public function getFormattedDendaTotal(): string
+    {
+        return 'Rp ' . number_format($this->denda_total ?? $this->calculateDendaTotal(), 0, ',', '.');
+    }
+
+    /**
+     * Format total bayar to IDR
+     */
+    public function getFormattedTotalBayar(): string
+    {
+        return 'Rp ' . number_format($this->total_bayar ?? $this->calculateTotalBayar(), 0, ',', '.');
     }
 }

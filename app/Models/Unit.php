@@ -37,6 +37,13 @@ class Unit extends Model
         'harga_beli' => 'decimal:2'
     ];
 
+    protected $attributes = [
+        'status' => 'tersedia',
+        'stok' => 1,
+        'harga_sewa_per_hari' => 50000,
+        'denda_per_hari' => 10000,
+    ];
+
     /**
      * Relasi many-to-many dengan Kategori
      * Satu unit dapat memiliki banyak kategori
@@ -53,6 +60,30 @@ class Unit extends Model
     public function peminjamans(): HasMany
     {
         return $this->hasMany(Peminjaman::class);
+    }
+
+    /**
+     * Format harga sewa per hari ke IDR
+     */
+    public function getFormattedHargaSewaPerHari(): string
+    {
+        return 'Rp ' . number_format($this->harga_sewa_per_hari, 0, ',', '.');
+    }
+
+    /**
+     * Format denda per hari ke IDR
+     */
+    public function getFormattedDendaPerHari(): string
+    {
+        return 'Rp ' . number_format($this->denda_per_hari, 0, ',', '.');
+    }
+
+    /**
+     * Format harga beli ke IDR
+     */
+    public function getFormattedHargaBeli(): string
+    {
+        return 'Rp ' . number_format($this->harga_beli ?? 0, 0, ',', '.');
     }
 
     /**
