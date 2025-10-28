@@ -16,8 +16,9 @@
         <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
             <form method="GET" action="{{ route('admin.peminjamans.index') }}" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+
                     <!-- Search Input -->
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2 mt-5">
                         <div class="relative">
                             <flux:input
                                 name="search"
@@ -39,7 +40,7 @@
                     </div>
 
                     <!-- Status Filter -->
-                    <div>
+                    <div class="mt-5">
                         <flux:select name="status" placeholder="Filter by status">
                             <option value="">All Status</option>
                             <option value="dipinjam" {{ request('status') === 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
