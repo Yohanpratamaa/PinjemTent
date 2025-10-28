@@ -84,6 +84,9 @@
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Rented</p>
                         <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['disewa'] ?? 0 }}</p>
+                        @if(isset($stats['total_active_rentals']) && $stats['total_active_rentals'] > 0)
+                            <p class="text-xs text-blue-600 dark:text-blue-400">{{ $stats['total_active_rentals'] }} units total</p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -211,7 +214,7 @@
                                         @endswitch
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-white">{{ $unit->stok }}</div>
+                                        <div class="text-sm text-gray-900 dark:text-white">{{ $unit->available_stock }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-500 dark:text-gray-400">

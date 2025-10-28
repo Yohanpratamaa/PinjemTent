@@ -67,8 +67,24 @@
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Stock Quantity</dt>
-                            <dd class="mt-1 text-lg font-medium text-gray-900 dark:text-white">{{ $unit->stok }}</dd>
+                            <dd class="mt-1 text-lg font-medium text-gray-900 dark:text-white">
+                                {{ $unit->available_stock }}
+                            </dd>
                         </div>
+                        {{-- <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Available Stock</dt>
+                            <dd class="mt-1 text-lg font-medium text-green-600 dark:text-green-400">
+                                {{ $unit->available_stock }}
+                                <span class="text-sm text-gray-500 dark:text-gray-400">({{ $unit->stok - $unit->active_rentals_count }} available)</span>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Currently Rented</dt>
+                            <dd class="mt-1 text-lg font-medium text-blue-600 dark:text-blue-400">
+                                {{ $unit->active_rentals_count }}
+                                <span class="text-sm text-gray-500 dark:text-gray-400">({{ $unit->active_rentals->count() }} rental(s))</span>
+                            </dd>
+                        </div> --}}
                     </dl>
 
                     @if($unit->deskripsi)

@@ -13,6 +13,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UnitController extends Controller
 {
@@ -37,8 +38,17 @@ class UnitController extends Controller
         // Get statistics
         $stats = [
             'tersedia' => Unit::where('status', 'tersedia')->count(),
-            'disewa' => Unit::where('status', 'disewa')->count(),
+            'disewa' => Unit::whereHas('peminjamans', function($query) {
+                $query->where('status', 'dipinjam');
+            })->count(),
             'maintenance' => Unit::where('status', 'maintenance')->count(),
+            // Additional stats for better insight
+            'total_active_rentals' => DB::table('peminjamans')
+                ->where('status', 'dipinjam')
+                ->sum('jumlah'),
+            'total_units_with_active_rentals' => Unit::whereHas('peminjamans', function($query) {
+                $query->where('status', 'dipinjam');
+            })->count(),
         ];
 
         return view('admin.units.index', compact('units', 'categories', 'stats'));
