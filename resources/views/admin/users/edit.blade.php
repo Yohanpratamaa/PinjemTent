@@ -133,41 +133,44 @@
                 </div>
 
                 <!-- Form Actions -->
-                <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <flux:button type="submit" variant="primary" class="flex items-center gap-2">
-                        <div class="flex items-center gap-2">
-                            <flux:icon.check class="size-4" />
-                            <span>Update User</span>
-                        </div>
-                    </flux:button>
-                    <flux:button type="button" variant="outline" onclick="window.history.back()">
-                        Cancel
-                    </flux:button>
-                </div>
-            </form>
-
-            <!-- Separate Delete Form - OUTSIDE of Update Form -->
-            @if($user->id !== auth()->id() && $user->email !== 'admin@pinjemtent.com')
-                <div class="flex justify-end mt-4">
-                    <form
-                        method="POST"
-                        action="{{ route('admin.users.destroy', $user) }}"
-                        class="inline"
-                        data-user-id="{{ $user->id }}"
-                        data-user-name="{{ $user->name }}"
-                        onsubmit="return debugDeleteUser('{{ $user->id }}', '{{ addslashes($user->name) }}')"
-                    >
-                        @csrf
-                        @method('DELETE')
-                        <flux:button type="submit" variant="danger" class="flex items-center gap-2">
+                <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <!-- Update and Cancel Buttons -->
+                    <div class="flex items-center gap-3">
+                        <flux:button type="submit" variant="primary" class="flex items-center gap-2">
                             <div class="flex items-center gap-2">
-                                <flux:icon.trash class="size-4" />
-                                Delete User
+                                <flux:icon.check class="size-4" />
+                                <span>Update User</span>
                             </div>
                         </flux:button>
-                    </form>
+                        <flux:button type="button" variant="outline" onclick="window.history.back()">
+                            Cancel
+                        </flux:button>
+                    </div>
+
+                    <!-- Delete Button - Sejajar dengan Update -->
+                    @if($user->id !== auth()->id() && $user->email !== 'admin@pinjemtent.com')
+                        <div class="flex items-center">
+                            <form
+                                method="POST"
+                                action="{{ route('admin.users.destroy', $user) }}"
+                                class="inline"
+                                data-user-id="{{ $user->id }}"
+                                data-user-name="{{ $user->name }}"
+                                onsubmit="return debugDeleteUser('{{ $user->id }}', '{{ addslashes($user->name) }}')"
+                            >
+                                @csrf
+                                @method('DELETE')
+                                <flux:button type="submit" variant="danger">
+                                    <div class="flex items-center gap-2">
+                                        <flux:icon.trash class="size-4" />
+                                        Delete User
+                                    </div>
+                                </flux:button>
+                            </form>
+                        </div>
+                    @endif
                 </div>
-            @endif
+            </form>
         </div>
 
         <!-- User Activity -->

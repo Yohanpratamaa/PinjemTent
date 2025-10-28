@@ -6,10 +6,10 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Rental Management</h1>
                 <p class="text-sm text-gray-600 dark:text-gray-400">Track and manage all tent rentals</p>
             </div>
-            <flux:button variant="primary" href="{{ route('admin.peminjamans.create') }}">
+            {{-- <flux:button variant="primary" href="{{ route('admin.peminjamans.create') }}">
                 <flux:icon.plus class="size-4" />
                 Create New Rental
-            </flux:button>
+            </flux:button> --}}
         </div>
 
         <!-- Search and Filter Section -->
@@ -58,8 +58,10 @@
 
                 <div class="flex items-center gap-3">
                     <flux:button type="submit" variant="outline">
-                        <flux:icon.magnifying-glass class="size-4" />
-                        Search
+                        <div class="flex items-center gap-2">
+                            <flux:icon.magnifying-glass class="size-4" />
+                            Search
+                        </div>
                     </flux:button>
                     <flux:button type="button" variant="ghost" onclick="window.location.href='{{ route('admin.peminjamans.index') }}'">
                         Clear Filters
@@ -304,12 +306,12 @@
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         Get started by creating a new rental.
                     </p>
-                    <div class="mt-6">
+                    {{-- <div class="mt-6">
                         <flux:button variant="primary" href="{{ route('admin.peminjamans.create') }}">
                             <flux:icon.plus class="size-4" />
                             Create New Rental
                         </flux:button>
-                    </div>
+                    </div> --}}
                 </div>
             @endif
         </div>

@@ -31,12 +31,12 @@
                     <flux:navlist.item icon="document" :href="route('admin.peminjamans.index')" :current="request()->routeIs('admin.peminjamans.*')" wire:navigate>
                         {{ __('Rentals') }}
                     </flux:navlist.item>
-                    <flux:navlist.item icon="clock" href="#" wire:navigate>
+                    {{-- <flux:navlist.item icon="clock" href="#" wire:navigate>
                         {{ __('Overdue') }}
                     </flux:navlist.item>
                     <flux:navlist.item icon="chart-bar" href="#" wire:navigate>
                         {{ __('Reports') }}
-                    </flux:navlist.item>
+                    </flux:navlist.item> --}}
                 </flux:navlist.group>
 
                 <flux:navlist.group :heading="__('User Management')" class="grid">

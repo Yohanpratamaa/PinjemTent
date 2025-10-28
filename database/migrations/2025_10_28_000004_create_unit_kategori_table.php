@@ -13,12 +13,16 @@ return new class extends Migration
     {
         Schema::create('unit_kategori', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('unit_id')->constrained()->onDelete('cascade');
-            $table->foreignId('kategori_id')->constrained()->onDelete('cascade');
+            $table->foreignId('unit_id')->constrained('units')->onDelete('cascade');
+            $table->foreignId('kategori_id')->constrained('kategoris')->onDelete('cascade');
             $table->timestamps();
 
-            // Menghindari duplikasi relasi yang sama
+            // Ensure unique combination of unit and kategori
             $table->unique(['unit_id', 'kategori_id']);
+
+            // Indexes for better performance
+            $table->index('unit_id');
+            $table->index('kategori_id');
         });
     }
 
