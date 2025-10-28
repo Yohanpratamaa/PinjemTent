@@ -165,4 +165,76 @@ class Cart extends Model
 
         return ($conflictingRentals + $this->quantity) <= $this->unit->stok;
     }
+
+    /**
+     * Check apakah user sudah mencapai batas maksimal 2 unit per jenis per hari
+     */
+    public function isWithinDailyLimit(): bool
+    {
+        return static::checkDailyUnitLimit($this->user_id, $this->unit_id, $this->tanggal_mulai, $this->tanggal_selesai, $this->quantity, $this->id);
+    }
+
+    /**
+     * Static method untuk check daily unit limit
+     */
+    public static function checkDailyUnitLimit($userId, $unitId, $tanggalMulai, $tanggalSelesai, $quantity, $excludeCartId = null): bool
+    {
+        $maxQuantityPerDay = 2;
+
+        // Konversi tanggal ke Carbon jika belum
+        $startDate = $tanggalMulai instanceof Carbon ? $tanggalMulai : Carbon::parse($tanggalMulai);
+        $endDate = $tanggalSelesai instanceof Carbon ? $tanggalSelesai : Carbon::parse($tanggalSelesai);
+
+        // Check setiap hari dalam rentang tanggal
+        $currentDate = $startDate->copy();
+        while ($currentDate <= $endDate) {
+            $totalQuantityForDay = 0;
+
+            // Hitung quantity dari cart untuk hari ini
+            $cartQuery = static::where('user_id', $userId)
+                ->where('unit_id', $unitId)
+                ->where('tanggal_mulai', '<=', $currentDate)
+                ->where('tanggal_selesai', '>=', $currentDate);
+
+            if ($excludeCartId) {
+                $cartQuery->where('id', '!=', $excludeCartId);
+            }
+
+            $totalQuantityForDay += $cartQuery->sum('quantity');
+
+            // Hitung quantity dari peminjaman aktif untuk hari ini
+            $totalQuantityForDay += \App\Models\Peminjaman::where('user_id', $userId)
+                ->where('unit_id', $unitId)
+                ->where('status', '!=', 'dibatalkan')
+                ->where('tanggal_pinjam', '<=', $currentDate)
+                ->where('tanggal_kembali_rencana', '>=', $currentDate)
+                ->sum('jumlah');
+
+            // Check apakah menambah quantity ini akan melebihi batas
+            if (($totalQuantityForDay + $quantity) > $maxQuantityPerDay) {
+                return false;
+            }
+
+            $currentDate->addDay();
+        }
+
+        return true;
+    }
+
+    /**
+     * Get pesan error untuk batas maksimal
+     */
+    public function getDailyLimitErrorMessage(): string
+    {
+        return "Maksimal 2 unit per jenis tenda per hari. Anda sudah mencapai batas untuk {$this->unit->nama_unit}.";
+    }
+
+    /**
+     * Static method untuk mendapatkan pesan error
+     */
+    public static function getDailyLimitErrorForUnit($unitId): string
+    {
+        $unit = \App\Models\Unit::find($unitId);
+        return "Maksimal 2 unit per jenis tenda per hari. Anda sudah mencapai batas untuk {$unit->nama_unit}.";
+    }
 }

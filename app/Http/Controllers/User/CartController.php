@@ -79,6 +79,21 @@ class CartController extends Controller
                 ], 400);
             }
 
+            // Check daily unit limit (max 2 per unit type per day)
+            if (!Cart::checkDailyUnitLimit(Auth::id(), $validated['unit_id'], $validated['tanggal_mulai'], $validated['tanggal_selesai'], $validated['quantity'])) {
+                Log::warning('Daily unit limit exceeded', [
+                    'user_id' => Auth::id(),
+                    'unit_id' => $validated['unit_id'],
+                    'quantity' => $validated['quantity'],
+                    'tanggal_mulai' => $validated['tanggal_mulai'],
+                    'tanggal_selesai' => $validated['tanggal_selesai']
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => Cart::getDailyLimitErrorForUnit($validated['unit_id'])
+                ], 400);
+            }
+
             // Check if item already exists in cart for same dates
             $existingCartItem = Cart::forUser(Auth::id())
                 ->where('unit_id', $validated['unit_id'])
@@ -94,6 +109,14 @@ class CartController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => "Total quantity melebihi stok tersedia. Maksimal: {$unit->available_stock} unit."
+                    ], 400);
+                }
+
+                // Check daily limit for updated quantity
+                if (!Cart::checkDailyUnitLimit(Auth::id(), $validated['unit_id'], $validated['tanggal_mulai'], $validated['tanggal_selesai'], $newQuantity, $existingCartItem->id)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => Cart::getDailyLimitErrorForUnit($validated['unit_id'])
                     ], 400);
                 }
 
@@ -209,6 +232,20 @@ class CartController extends Controller
                 ], 400);
             }
 
+            // Check daily unit limit (max 2 per unit type per day)
+            if (!Cart::checkDailyUnitLimit(Auth::id(), $cart->unit_id, $validated['tanggal_mulai'], $validated['tanggal_selesai'], $validated['quantity'], $cart->id)) {
+                Log::warning('Daily unit limit exceeded on update', [
+                    'user_id' => Auth::id(),
+                    'cart_id' => $cart->id,
+                    'unit_id' => $cart->unit_id,
+                    'quantity' => $validated['quantity']
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => Cart::getDailyLimitErrorForUnit($cart->unit_id)
+                ], 400);
+            }
+
             $cart->update($validated);
 
             Log::info('Cart item updated successfully', [
@@ -316,6 +353,23 @@ class CartController extends Controller
             Log::warning('Checkout failed: empty cart', ['user_id' => Auth::id()]);
             return redirect()->route('user.cart.index')
                 ->with('error', 'Keranjang kosong. Tidak ada item untuk di-checkout.');
+        }
+
+        // Validate daily unit limits before checkout
+        $validationErrors = [];
+        foreach ($cartItems as $cartItem) {
+            if (!$cartItem->isWithinDailyLimit()) {
+                $validationErrors[] = $cartItem->getDailyLimitErrorMessage();
+            }
+        }
+
+        if (!empty($validationErrors)) {
+            Log::warning('Checkout failed: daily limit validation errors', [
+                'user_id' => Auth::id(),
+                'errors' => $validationErrors
+            ]);
+            return redirect()->route('user.cart.index')
+                ->with('error', 'Checkout gagal: ' . implode(' ', $validationErrors));
         }
 
         Log::info('Cart items found for checkout', [
