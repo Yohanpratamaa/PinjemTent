@@ -52,6 +52,12 @@ class StoreUnitRequest extends FormRequest
                 'string',
                 'max:1000'
             ],
+            'foto' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,png,jpg,gif',
+                'max:2048' // Max 2MB
+            ],
             'status' => [
                 'required',
                 'in:tersedia,dipinjam,maintenance'
@@ -79,11 +85,11 @@ class StoreUnitRequest extends FormRequest
                 'min:0',
                 'max:999999999999.99'
             ],
-            'kategori_ids' => [
+            'kategoris' => [
                 'nullable',
                 'array'
             ],
-            'kategori_ids.*' => [
+            'kategoris.*' => [
                 'exists:kategoris,id'
             ]
         ];
@@ -108,7 +114,10 @@ class StoreUnitRequest extends FormRequest
             'denda_per_hari.min' => 'Denda tidak boleh negatif',
             'harga_beli.numeric' => 'Harga beli harus berupa angka',
             'harga_beli.min' => 'Harga beli tidak boleh negatif',
-            'kategori_ids.*.exists' => 'Kategori yang dipilih tidak valid'
+            'foto.image' => 'File harus berupa gambar',
+            'foto.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif',
+            'foto.max' => 'Ukuran gambar maksimal 2MB',
+            'kategoris.*.exists' => 'Kategori yang dipilih tidak valid'
         ];
     }
 }

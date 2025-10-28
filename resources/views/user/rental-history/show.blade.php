@@ -100,17 +100,9 @@
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Informasi Unit</h2>
 
                     <div class="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
-                        @if($rental->unit->foto)
-                            <img class="w-full md:w-48 h-32 object-cover rounded-lg"
-                                 src="{{ asset('storage/' . $rental->unit->foto) }}"
-                                 alt="{{ $rental->unit->nama_unit }}">
-                        @else
-                            <div class="w-full md:w-48 h-32 bg-zinc-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center">
-                                <svg class="w-12 h-12 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                </svg>
-                            </div>
-                        @endif
+                        <img class="w-full md:w-48 h-32 object-cover rounded-lg"
+                             src="{{ $rental->unit->foto_url }}"
+                             alt="{{ $rental->unit->nama_unit }}">
 
                         <div class="flex-1">
                             <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">

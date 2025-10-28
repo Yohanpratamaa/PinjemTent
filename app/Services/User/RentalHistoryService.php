@@ -27,7 +27,17 @@ class RentalHistoryService
 
         // Apply filters
         if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            if ($filters['status'] === 'terlambat') {
+                $query->where(function($q) {
+                    $q->where('status', 'terlambat')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'dipinjam')
+                               ->where('tanggal_kembali_rencana', '<', now());
+                      });
+                });
+            } else {
+                $query->where('status', $filters['status']);
+            }
         }
 
         if (!empty($filters['start_date'])) {
@@ -189,6 +199,30 @@ class RentalHistoryService
                         ->groupBy('status')
                         ->pluck('count', 'status')
                         ->toArray();
+    }
+
+    /**
+     * Get rental status with late fee information.
+     */
+    public function getStatusWithLateFee($rental)
+    {
+        if ($rental->is_terlambat) {
+            $lateDays = now()->diffInDays($rental->tanggal_kembali_rencana);
+            $lateFee = $rental->calculateDendaTotal();
+
+            return [
+                'status' => 'terlambat',
+                'display' => 'Terlambat (' . $lateDays . ' hari)',
+                'late_fee' => $lateFee,
+                'days_late' => $lateDays
+            ];
+        }
+
+        return [
+            'status' => $rental->status,
+            'display' => ucfirst($rental->status),
+            'late_fee' => 0
+        ];
     }
 
     /**

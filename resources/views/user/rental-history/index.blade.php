@@ -86,6 +86,7 @@
                                 <option value="pending" {{ $filters['status'] === 'pending' ? 'selected' : '' }}>Pending</option>
                                 <option value="disetujui" {{ $filters['status'] === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
                                 <option value="dipinjam" {{ $filters['status'] === 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                <option value="terlambat" {{ $filters['status'] === 'terlambat' ? 'selected' : '' }}>Terlambat</option>
                                 <option value="dikembalikan" {{ $filters['status'] === 'dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
                                 <option value="dibatalkan" {{ $filters['status'] === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                             </flux:select>
@@ -165,17 +166,9 @@
                                 <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors duration-200">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
-                                            @if($rental->unit->foto)
-                                                <img class="h-10 w-10 rounded-lg object-cover mr-3"
-                                                     src="{{ asset('storage/' . $rental->unit->foto) }}"
-                                                     alt="{{ $rental->unit->nama_unit }}">
-                                            @else
-                                                <div class="h-10 w-10 rounded-lg bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mr-3">
-                                                    <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                                    </svg>
-                                                </div>
-                                            @endif
+                                            <img class="h-10 w-10 rounded-lg object-cover mr-3"
+                                                 src="{{ $rental->unit->foto_url }}"
+                                                 alt="{{ $rental->unit->nama_unit }}">
                                             <div>
                                                 <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                                     {{ $rental->unit->nama_unit }}
@@ -210,13 +203,30 @@
                                                 'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
                                                 'disetujui' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
                                                 'dipinjam' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400',
+                                                'terlambat' => 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
                                                 'dikembalikan' => 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
                                                 'dibatalkan' => 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
                                             ];
+
+                                            // Determine if rental is late
+                                            $isLate = $rental->is_terlambat;
+                                            $displayStatus = $isLate ? 'terlambat' : $rental->status;
+                                            $displayText = $isLate ? 'Terlambat' : ucfirst($rental->status);
                                         @endphp
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$rental->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                            {{ ucfirst($rental->status) }}
-                                        </span>
+                                        <div>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$displayStatus] ?? 'bg-gray-100 text-gray-800' }}">
+                                                {{ $displayText }}
+                                            </span>
+                                            @if($isLate)
+                                                @php
+                                                    $lateDays = now()->diffInDays($rental->tanggal_kembali_rencana);
+                                                    $lateFee = $rental->calculateDendaTotal();
+                                                @endphp
+                                                <div class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                                    {{ $lateDays }} hari | Denda: Rp {{ number_format($lateFee, 0, ',', '.') }}
+                                                </div>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex items-center space-x-2">

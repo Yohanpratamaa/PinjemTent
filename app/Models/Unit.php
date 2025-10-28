@@ -157,7 +157,9 @@ class Unit extends Model
         if ($this->foto && file_exists(public_path('images/units/' . $this->foto))) {
             return asset('images/units/' . $this->foto);
         }
-        return asset('images/no-image.jpg'); // Default image
+
+        // Use SVG placeholder in units folder to avoid HTTP request loops
+        return asset('images/units/placeholder.svg');
     }
 
     /**

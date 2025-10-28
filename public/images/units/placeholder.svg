@@ -1,0 +1,15 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="200" fill="#F8F9FA"/>
+    <!-- Tent Shape -->
+    <path d="M100 50L150 130H50L100 50Z" fill="#10B981" opacity="0.8"/>
+    <path d="M100 50L150 130H100V50Z" fill="#059669" opacity="0.6"/>
+    <!-- Tent Pole -->
+    <line x1="100" y1="50" x2="100" y2="130" stroke="#374151" stroke-width="2" opacity="0.7"/>
+    <!-- Tent Door -->
+    <rect x="90" y="115" width="20" height="15" fill="#374151" opacity="0.5"/>
+    <!-- Ground -->
+    <rect x="0" y="130" width="200" height="70" fill="#E5E7EB" opacity="0.4"/>
+    <!-- Text -->
+    <text x="100" y="160" text-anchor="middle" fill="#6B7280" font-family="Arial, sans-serif" font-size="14" font-weight="500">Unit Image</text>
+    <text x="100" y="175" text-anchor="middle" fill="#9CA3AF" font-family="Arial, sans-serif" font-size="12">Not Available</text>
+</svg>
