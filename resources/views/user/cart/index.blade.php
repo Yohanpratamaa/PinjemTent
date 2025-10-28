@@ -155,6 +155,40 @@
                                             {{ $item->formatted_total_harga }}
                                         </div>
                                     </div>
+
+                                    <!-- Penalty Warning (if > 5 days) -->
+                                    @if($item->has_penalty)
+                                        <div class="mt-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3">
+                                            <div class="flex items-start space-x-2">
+                                                <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                                </svg>
+                                                <div class="flex-1">
+                                                    <h5 class="text-xs font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
+                                                        ⚠️ Informasi Denda
+                                                    </h5>
+                                                    <div class="text-xs text-yellow-700 dark:text-yellow-300 space-y-1">
+                                                        <p>Sewa lebih dari 5 hari dikenakan denda:</p>
+                                                        <div class="bg-yellow-100 dark:bg-yellow-800/30 rounded px-2 py-1 text-xs">
+                                                            <div class="flex justify-between">
+                                                                <span>Denda per hari:</span>
+                                                                <span class="font-medium">{{ $item->unit->getFormattedDendaPerHari() }}</span>
+                                                            </div>
+                                                            <div class="flex justify-between">
+                                                                <span>Hari kelebihan:</span>
+                                                                <span class="font-medium">{{ $item->excess_days }} hari</span>
+                                                            </div>
+                                                            <hr class="border-yellow-300 dark:border-yellow-600 my-1">
+                                                            <div class="flex justify-between font-semibold">
+                                                                <span>Total denda:</span>
+                                                                <span class="text-red-600 dark:text-red-400">{{ $item->formatted_penalty }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -180,17 +214,65 @@
                                             {{ $item->formatted_total_harga }}
                                         </span>
                                     </div>
+
+                                    <!-- Show penalty if exists -->
+                                    @if($item->has_penalty)
+                                        <div class="flex justify-between text-sm ml-4">
+                                            <span class="text-yellow-600 dark:text-yellow-400 text-xs">
+                                                + Denda ({{ $item->excess_days }} hari)
+                                            </span>
+                                            <span class="font-medium text-red-600 dark:text-red-400 text-xs">
+                                                {{ $item->formatted_penalty }}
+                                            </span>
+                                        </div>
+                                    @endif
                                 @endforeach
                             </div>
 
                             <!-- Total -->
                             <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">
+                                @php
+                                    $totalPenalty = 0;
+                                    $subtotal = 0;
+                                    foreach($cartItems as $item) {
+                                        $subtotal += $item->total_harga;
+                                        if($item->has_penalty) {
+                                            $totalPenalty += $item->calculatePenalty();
+                                        }
+                                    }
+                                    $finalTotal = $subtotal + $totalPenalty;
+                                @endphp
+
+                                <!-- Subtotal -->
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-gray-600 dark:text-gray-400">
+                                        Subtotal
+                                    </span>
+                                    <span class="font-medium text-gray-900 dark:text-white">
+                                        Rp {{ number_format($subtotal, 0, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <!-- Penalty Total (if any) -->
+                                @if($totalPenalty > 0)
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-red-600 dark:text-red-400">
+                                            Total Denda
+                                        </span>
+                                        <span class="font-medium text-red-600 dark:text-red-400">
+                                            Rp {{ number_format($totalPenalty, 0, ',', '.') }}
+                                        </span>
+                                    </div>
+                                    <hr class="border-gray-200 dark:border-gray-700 mb-3">
+                                @endif
+
+                                <!-- Grand Total -->
                                 <div class="flex justify-between items-center">
                                     <span class="text-lg font-semibold text-gray-900 dark:text-white">
                                         Total
                                     </span>
                                     <span id="grandTotal" class="text-xl font-bold text-green-600 dark:text-green-400">
-                                        Rp {{ number_format($grandTotal, 0, ',', '.') }}
+                                        Rp {{ number_format($finalTotal, 0, ',', '.') }}
                                     </span>
                                 </div>
                             </div>

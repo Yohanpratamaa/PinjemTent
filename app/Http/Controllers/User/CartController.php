@@ -112,7 +112,7 @@ class CartController extends Controller
                     'quantity' => $validated['quantity'],
                     'tanggal_mulai' => $validated['tanggal_mulai'],
                     'tanggal_selesai' => $validated['tanggal_selesai'],
-                    'notes' => $validated['notes'],
+                    'notes' => $validated['notes'] ?? null,
                     'harga_per_hari' => $unit->harga_sewa_per_hari
                 ]);
                 Log::info('Created new cart item', ['cart_item_id' => $cartItem->id]);

@@ -100,6 +100,44 @@ class Cart extends Model
     }
 
     /**
+     * Hitung denda jika durasi sewa lebih dari 5 hari
+     */
+    public function calculatePenalty(): float
+    {
+        if ($this->duration > 5) {
+            $excessDays = $this->duration - 5;
+            $penaltyPerDay = $this->unit->denda_per_hari ?? 0;
+            return $this->quantity * $excessDays * $penaltyPerDay;
+        }
+        return 0;
+    }
+
+    /**
+     * Format denda ke IDR
+     */
+    public function getFormattedPenaltyAttribute(): string
+    {
+        $penalty = $this->calculatePenalty();
+        return 'Rp ' . number_format($penalty, 0, ',', '.');
+    }
+
+    /**
+     * Check apakah sewa akan dikenakan denda
+     */
+    public function getHasPenaltyAttribute(): bool
+    {
+        return $this->duration > 5;
+    }
+
+    /**
+     * Get excess days beyond 5 days
+     */
+    public function getExcessDaysAttribute(): int
+    {
+        return max(0, $this->duration - 5);
+    }
+
+    /**
      * Scope untuk keranjang user tertentu
      */
     public function scopeForUser($query, $userId)
