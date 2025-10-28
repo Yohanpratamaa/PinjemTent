@@ -76,9 +76,9 @@
                 <div class="relative overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:shadow-lg transition-shadow duration-300">
                     <!-- Product Image -->
                     <div class="aspect-square overflow-hidden">
-                        @if($tent->foto)
+                        @if($tent->foto && file_exists(public_path('images/units/' . $tent->foto)))
                             <img
-                                src="{{ asset('storage/' . $tent->foto) }}"
+                                src="{{ asset('images/units/' . $tent->foto) }}"
                                 alt="{{ $tent->nama_unit }}"
                                 class="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
                             >

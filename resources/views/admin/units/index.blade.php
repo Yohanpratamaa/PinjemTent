@@ -124,6 +124,9 @@
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Photo
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                     Unit Code
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -158,6 +161,19 @@
                         <tbody class="bg-white dark:bg-neutral-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($units as $unit)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex-shrink-0 h-16 w-16">
+                                            @if($unit->foto && file_exists(public_path('images/units/' . $unit->foto)))
+                                                <img class="h-16 w-16 rounded-lg object-cover"
+                                                     src="{{ asset('images/units/' . $unit->foto) }}"
+                                                     alt="{{ $unit->nama_unit }}">
+                                            @else
+                                                <div class="h-16 w-16 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                                                    <flux:icon.photo class="h-8 w-8 text-gray-400" />
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
                                             {{ $unit->kode_unit }}

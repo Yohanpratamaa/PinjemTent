@@ -148,4 +148,23 @@ class Unit extends Model
     {
         return $this->status === 'tersedia' && $this->available_stock > 0;
     }
+
+    /**
+     * Get photo URL for the unit
+     */
+    public function getFotoUrlAttribute(): string
+    {
+        if ($this->foto && file_exists(public_path('images/units/' . $this->foto))) {
+            return asset('images/units/' . $this->foto);
+        }
+        return asset('images/no-image.jpg'); // Default image
+    }
+
+    /**
+     * Get whether unit has photo
+     */
+    public function getHasFotoAttribute(): bool
+    {
+        return !empty($this->foto) && file_exists(public_path('images/units/' . $this->foto));
+    }
 }

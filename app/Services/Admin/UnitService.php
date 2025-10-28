@@ -70,6 +70,7 @@ class UnitService
             'merk' => $data['merk'] ?? null,
             'kapasitas' => $data['kapasitas'] ?? null,
             'deskripsi' => $data['deskripsi'] ?? null,
+            'foto' => $data['foto'] ?? null,
             'status' => $data['status'] ?? 'tersedia',
             'stok' => $data['stok'] ?? 1,
             'harga_sewa_per_hari' => $data['harga_sewa_per_hari'] ?? null,
@@ -132,6 +133,7 @@ class UnitService
             'merk' => isset($data['merk']) ? $data['merk'] : $unit->merk,
             'kapasitas' => isset($data['kapasitas']) ? $data['kapasitas'] : $unit->kapasitas,
             'deskripsi' => isset($data['deskripsi']) ? $data['deskripsi'] : $unit->deskripsi,
+            'foto' => isset($data['foto']) ? $data['foto'] : $unit->foto,
             'status' => $data['status'] ?? $unit->status,
             'stok' => (int) $data['stok'], // Force ke integer
             'harga_sewa_per_hari' => isset($data['harga_sewa_per_hari']) ? $data['harga_sewa_per_hari'] : $unit->harga_sewa_per_hari,

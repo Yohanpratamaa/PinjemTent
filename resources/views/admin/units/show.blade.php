@@ -23,6 +23,18 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Main Information -->
             <div class="lg:col-span-2 space-y-6">
+                <!-- Unit Photo Card -->
+                @if($unit->foto && file_exists(public_path('images/units/' . $unit->foto)))
+                <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Unit Photo</h3>
+                    <div class="flex justify-center">
+                        <img src="{{ asset('images/units/' . $unit->foto) }}"
+                             alt="{{ $unit->nama_unit }}"
+                             class="max-w-full h-64 object-cover rounded-lg border">
+                    </div>
+                </div>
+                @endif
+
                 <!-- Basic Details Card -->
                 <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic Information</h3>

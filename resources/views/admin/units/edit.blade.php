@@ -25,6 +25,7 @@
             <form
                 method="POST"
                 action="{{ route('admin.units.update', $unit) }}"
+                enctype="multipart/form-data"
                 class="p-6 space-y-6"
                 onsubmit="return debugUnitUpdateForm(this) && validateForm()"
                 data-unit-id="{{ $unit->id }}"
@@ -148,6 +149,38 @@
                                     @endif
                                 </flux:description>
                                 @error('stok')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Photo Upload -->
+                        <div class="md:col-span-2">
+                            <flux:field>
+                                <flux:label>Unit Photo</flux:label>
+                                @if($unit->foto && file_exists(public_path('images/units/' . $unit->foto)))
+                                    <div class="mb-3">
+                                        <img src="{{ asset('images/units/' . $unit->foto) }}"
+                                             alt="{{ $unit->nama_unit }}"
+                                             class="w-32 h-32 object-cover rounded-lg border">
+                                        <p class="text-sm text-gray-500 mt-1">Current photo</p>
+                                    </div>
+                                @endif
+                                <input
+                                    type="file"
+                                    name="foto"
+                                    accept="image/jpeg,image/png,image/jpg,image/gif"
+                                    class="block w-full text-sm text-gray-500 dark:text-gray-400
+                                           file:mr-4 file:py-2 file:px-4
+                                           file:rounded-lg file:border-0
+                                           file:text-sm file:font-medium
+                                           file:bg-blue-50 file:text-blue-700
+                                           hover:file:bg-blue-100
+                                           dark:file:bg-blue-900 dark:file:text-blue-300
+                                           dark:hover:file:bg-blue-800"
+                                />
+                                <flux:description>Upload a new image for this unit (JPEG, PNG, JPG, GIF - Max: 2MB). Leave empty to keep current photo.</flux:description>
+                                @error('foto')
                                     <flux:error>{{ $message }}</flux:error>
                                 @enderror
                             </flux:field>

@@ -14,7 +14,7 @@
 
         <!-- Form Section -->
         <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl">
-            <form method="POST" action="{{ route('admin.units.store') }}" class="p-6 space-y-6">
+            <form method="POST" action="{{ route('admin.units.store') }}" enctype="multipart/form-data" class="p-6 space-y-6">
                 @csrf
 
                 <!-- Basic Information -->
@@ -120,6 +120,30 @@
                                 />
                                 <flux:description>Number of units available</flux:description>
                                 @error('stok')
+                                    <flux:error>{{ $message }}</flux:error>
+                                @enderror
+                            </flux:field>
+                        </div>
+
+                        <!-- Photo Upload -->
+                        <div class="md:col-span-2">
+                            <flux:field>
+                                <flux:label>Unit Photo</flux:label>
+                                <input
+                                    type="file"
+                                    name="foto"
+                                    accept="image/jpeg,image/png,image/jpg,image/gif"
+                                    class="block w-full text-sm text-gray-500 dark:text-gray-400
+                                           file:mr-4 file:py-2 file:px-4
+                                           file:rounded-lg file:border-0
+                                           file:text-sm file:font-medium
+                                           file:bg-blue-50 file:text-blue-700
+                                           hover:file:bg-blue-100
+                                           dark:file:bg-blue-900 dark:file:text-blue-300
+                                           dark:hover:file:bg-blue-800"
+                                />
+                                <flux:description>Upload an image for this unit (JPEG, PNG, JPG, GIF - Max: 2MB)</flux:description>
+                                @error('foto')
                                     <flux:error>{{ $message }}</flux:error>
                                 @enderror
                             </flux:field>

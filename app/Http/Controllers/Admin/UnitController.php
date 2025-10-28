@@ -74,6 +74,7 @@ class UnitController extends Controller
             'merk' => 'nullable|string|max:100',
             'kapasitas' => 'nullable|string|max:100',
             'deskripsi' => 'nullable|string',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'status' => 'required|in:tersedia,maintenance',
             'stok' => 'required|integer|min:0',
             'harga_sewa_per_hari' => 'nullable|numeric|min:0',
@@ -84,12 +85,22 @@ class UnitController extends Controller
         ]);
 
         try {
+            // Handle foto upload
+            $fotoPath = null;
+            if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+                $foto = $request->file('foto');
+                $fotoName = time() . '_' . $validated['kode_unit'] . '.' . $foto->getClientOriginalExtension();
+                $foto->move(public_path('images/units'), $fotoName);
+                $fotoPath = $fotoName;
+            }
+
             $data = [
                 'kode_unit' => $validated['kode_unit'],
                 'nama_unit' => $validated['nama_unit'],
                 'merk' => $validated['merk'] ?? null,
                 'kapasitas' => $validated['kapasitas'] ?? null,
                 'deskripsi' => $validated['deskripsi'] ?? null,
+                'foto' => $fotoPath,
                 'status' => $validated['status'],
                 'stok' => $validated['stok'],
                 'harga_sewa_per_hari' => $validated['harga_sewa_per_hari'] ?? null,
@@ -179,12 +190,27 @@ class UnitController extends Controller
         ]);
 
         try {
+            // Handle foto upload
+            $fotoPath = $unit->foto; // Keep current foto if no new upload
+            if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+                // Delete old foto if exists
+                if ($unit->foto && file_exists(public_path('images/units/' . $unit->foto))) {
+                    unlink(public_path('images/units/' . $unit->foto));
+                }
+
+                $foto = $request->file('foto');
+                $fotoName = time() . '_' . $validated['kode_unit'] . '.' . $foto->getClientOriginalExtension();
+                $foto->move(public_path('images/units'), $fotoName);
+                $fotoPath = $fotoName;
+            }
+
             $data = [
                 'kode_unit' => $validated['kode_unit'],
                 'nama_unit' => $validated['nama_unit'],
                 'merk' => $validated['merk'] ?? $unit->merk,
                 'kapasitas' => $validated['kapasitas'] ?? $unit->kapasitas,
                 'deskripsi' => $validated['deskripsi'] ?? $unit->deskripsi, // Fallback ke nilai lama
+                'foto' => $fotoPath,
                 'status' => $validated['status'],
                 'stok' => $validated['stok'], // Pastikan tidak null dan sudah tervalidasi
                 'harga_sewa_per_hari' => $validated['harga_sewa_per_hari'] ?? $unit->harga_sewa_per_hari,

@@ -57,6 +57,12 @@ class UpdateUnitStockRequest extends FormRequest
                 'string',
                 'max:1000'
             ],
+            'foto' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,png,jpg,gif',
+                'max:2048' // Max 2MB
+            ],
             'status' => [
                 'required',
                 'in:tersedia,dipinjam,maintenance'
@@ -120,6 +126,9 @@ class UpdateUnitStockRequest extends FormRequest
             'denda_per_hari.min' => 'Denda tidak boleh negatif',
             'harga_beli.numeric' => 'Harga beli harus berupa angka',
             'harga_beli.min' => 'Harga beli tidak boleh negatif',
+            'foto.image' => 'File harus berupa gambar',
+            'foto.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif',
+            'foto.max' => 'Ukuran gambar maksimal 2MB',
             'kategoris.*.exists' => 'Kategori yang dipilih tidak valid'
         ];
     }

@@ -110,9 +110,9 @@
                             <div class="group relative overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                                 <!-- Product Image -->
                                 <div class="aspect-square overflow-hidden relative">
-                                    @if($tent->foto)
+                                    @if($tent->foto && file_exists(public_path('images/units/' . $tent->foto)))
                                         <img
-                                            src="{{ asset('storage/' . $tent->foto) }}"
+                                            src="{{ asset('images/units/' . $tent->foto) }}"
                                             alt="{{ $tent->nama_unit }}"
                                             class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         >
