@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Peminjaman;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Carbon\Carbon;
 
 /**
  * Repository untuk menangani operasi database Peminjaman
@@ -194,5 +195,133 @@ class PeminjamanRepository
             ->where('unit_id', $unitId)
             ->where('status', 'dipinjam')
             ->exists();
+    }
+
+    /**
+     * Get user rental history with filters and pagination (untuk RentalHistoryService)
+     */
+    public function getUserRentals(int $userId, array $filters = [], int $perPage = 10): LengthAwarePaginator
+    {
+        $query = $this->model->with(['unit.kategoris', 'user'])
+            ->where('user_id', $userId);
+
+        // Apply filters
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['kategori'])) {
+            $query->whereHas('unit.kategoris', function ($q) use ($filters) {
+                $q->where('kategori_id', $filters['kategori']);
+            });
+        }
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('tanggal_pinjam', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('tanggal_kembali_rencana', '<=', $filters['end_date']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->whereHas('unit', function ($q) use ($filters) {
+                $q->where('nama_unit', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('merek', 'like', '%' . $filters['search'] . '%');
+            });
+        }
+
+        // Apply sorting
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortOrder = $filters['sort_order'] ?? 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * Get rental statistics for a user (untuk RentalHistoryService)
+     */
+    public function getUserRentalStats(int $userId): array
+    {
+        return [
+            'total_rentals' => $this->model->where('user_id', $userId)->count(),
+            'active_rentals' => $this->model->where('user_id', $userId)->whereIn('status', ['pending', 'disetujui', 'dipinjam'])->count(),
+            'completed_rentals' => $this->model->where('user_id', $userId)->where('status', 'dikembalikan')->count(),
+            'cancelled_rentals' => $this->model->where('user_id', $userId)->where('status', 'dibatalkan')->count(),
+            'total_spent' => $this->model->where('user_id', $userId)->where('status', 'dikembalikan')->sum('harga_sewa_total'),
+            'pending_approval' => $this->model->where('user_id', $userId)->where('status', 'pending')->count(),
+        ];
+    }
+
+    /**
+     * Find rental by ID for specific user (untuk RentalHistoryService)
+     */
+    public function findUserRental(int $rentalId, int $userId): ?Peminjaman
+    {
+        return $this->model->with(['unit.kategoris', 'user'])
+            ->where('id', $rentalId)
+            ->where('user_id', $userId)
+            ->first();
+    }
+
+    /**
+     * Cancel a rental (untuk RentalHistoryService)
+     */
+    public function cancelRental(int $rentalId, int $userId): bool
+    {
+        $rental = $this->findUserRental($rentalId, $userId);
+
+        if (!$rental) {
+            return false;
+        }
+
+        // Check if rental can be cancelled
+        if (!in_array($rental->status, ['pending', 'disetujui'])) {
+            return false;
+        }
+
+        return $rental->update(['status' => 'dibatalkan']);
+    }
+
+    /**
+     * Get user rentals for export (untuk RentalHistoryService)
+     */
+    public function getUserRentalsForExport(int $userId, array $filters = []): Collection
+    {
+        $query = $this->model->with(['unit.kategoris', 'user'])
+            ->where('user_id', $userId);
+
+        // Apply filters (same as getUserRentals but without pagination)
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['kategori'])) {
+            $query->whereHas('unit.kategoris', function ($q) use ($filters) {
+                $q->where('kategori_id', $filters['kategori']);
+            });
+        }
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('tanggal_pinjam', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('tanggal_kembali_rencana', '<=', $filters['end_date']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->whereHas('unit', function ($q) use ($filters) {
+                $q->where('nama_unit', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('merek', 'like', '%' . $filters['search'] . '%');
+            });
+        }
+
+        // Apply sorting
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortOrder = $filters['sort_order'] ?? 'desc';
+
+        return $query->orderBy($sortBy, $sortOrder)->get();
     }
 }

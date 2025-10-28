@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\PeminjamanController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\TentController as UserTentController;
+use App\Http\Controllers\User\RentalHistoryController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -72,6 +73,13 @@ Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
     Route::get('/tents/{tent}', [UserTentController::class, 'show'])->name('user.tents.show');
     Route::get('/tents/{tent}/rent', [UserTentController::class, 'rent'])->name('user.tents.rent');
     Route::post('/tents/{tent}/rent', [UserTentController::class, 'storeRental'])->name('user.tents.store-rental');
+
+    // Rental history routes
+    Route::prefix('rental-history')->name('user.rental-history.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\User\RentalHistoryController::class, 'index'])->name('index');
+        Route::get('/{rental}', [\App\Http\Controllers\User\RentalHistoryController::class, 'show'])->name('show');
+        Route::patch('/{rental}/cancel', [\App\Http\Controllers\User\RentalHistoryController::class, 'cancel'])->name('cancel');
+    });
 });
 
 // Legacy dashboard route (redirect based on role)

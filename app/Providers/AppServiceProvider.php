@@ -30,5 +30,11 @@ class AppServiceProvider extends ServiceProvider
             'components.layouts.app.sidebar',
             \App\View\Composers\SidebarComposer::class
         );
+
+        // Also add composer for any page that uses the app layout
+        view()->composer(
+            'components.layouts.app',
+            \App\View\Composers\SidebarComposer::class
+        );
     }
 }
