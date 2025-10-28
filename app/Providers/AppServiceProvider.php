@@ -25,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register view composers
+        view()->composer(
+            'components.layouts.app.sidebar',
+            \App\View\Composers\SidebarComposer::class
+        );
     }
 }

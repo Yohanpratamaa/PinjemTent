@@ -15,12 +15,16 @@ class TentController extends Controller
     public function index(Request $request)
     {
         $query = Unit::with('kategoris')->tersedia();
+        $selectedKategori = null;
 
         // Filter by category if requested
         if ($request->has('kategori') && $request->kategori != '') {
-            $query->whereHas('kategoris', function($q) use ($request) {
-                $q->where('kategoris.id', $request->kategori);
-            });
+            $selectedKategori = Kategori::find($request->kategori);
+            if ($selectedKategori) {
+                $query->whereHas('kategoris', function($q) use ($request) {
+                    $q->where('kategoris.id', $request->kategori);
+                });
+            }
         }
 
         // Search functionality
@@ -31,7 +35,7 @@ class TentController extends Controller
         $tents = $query->orderBy('nama_unit')->paginate(12);
         $kategoris = Kategori::orderBy('nama_kategori')->get();
 
-        return view('user.tents.index', compact('tents', 'kategoris'));
+        return view('user.tents.index', compact('tents', 'kategoris', 'selectedKategori'));
     }
 
     /**

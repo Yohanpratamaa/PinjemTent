@@ -11,15 +11,52 @@
                     </div>
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                            Kamu Mungkin Suka Produk Ini 🥰
+                            @if($selectedKategori)
+                                {{ $selectedKategori->nama_kategori }} 🏕️
+                            @else
+                                Kamu Mungkin Suka Produk Ini 🥰
+                            @endif
                         </h1>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Pilih tenda terbaik untuk petualangan Anda
+                            @if($selectedKategori)
+                                Menampilkan produk dalam kategori {{ $selectedKategori->nama_kategori }}
+                            @else
+                                Pilih tenda terbaik untuk petualangan Anda
+                            @endif
                         </p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Breadcrumb/Category Navigation -->
+        @if($selectedKategori || request('search'))
+        <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-sm">
+                    <a href="{{ route('user.tents.index') }}" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        All Products
+                    </a>
+                    @if($selectedKategori)
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                        <span class="text-green-600 dark:text-green-400 font-medium">{{ $selectedKategori->nama_kategori }}</span>
+                    @endif
+                    @if(request('search'))
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                        <span class="text-blue-600 dark:text-blue-400 font-medium">Search: "{{ request('search') }}"</span>
+                    @endif
+                </div>
+
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ $tents->total() }} produk ditemukan
+                </div>
+            </div>
+        </div>
+        @endif
 
         <!-- Filter and Search Section -->
         <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
@@ -186,11 +223,34 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                            Tidak ada tenda tersedia
+                            @if($selectedKategori)
+                                Tidak ada tenda dalam kategori {{ $selectedKategori->nama_kategori }}
+                            @elseif(request('search'))
+                                Tidak ditemukan hasil untuk "{{ request('search') }}"
+                            @else
+                                Tidak ada tenda tersedia
+                            @endif
                         </h3>
-                        <p class="text-gray-500 dark:text-gray-400">
-                            Saat ini tidak ada tenda yang tersedia untuk disewa.
+                        <p class="text-gray-500 dark:text-gray-400 mb-4">
+                            @if($selectedKategori)
+                                Coba pilih kategori lain atau lihat semua produk.
+                            @elseif(request('search'))
+                                Coba ubah kata kunci pencarian atau lihat semua produk.
+                            @else
+                                Saat ini tidak ada tenda yang tersedia untuk disewa.
+                            @endif
                         </p>
+
+                        @if($selectedKategori || request('search'))
+                            <a href="{{ route('user.tents.index') }}"
+                               class="inline-flex items-center px-4 py-2 border border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-medium rounded-lg transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h2a2 2 0 012 2v2H8V5z"></path>
+                                </svg>
+                                Lihat Semua Produk
+                            </a>
+                        @endif
                     </div>
                 </div>
             @endforelse
