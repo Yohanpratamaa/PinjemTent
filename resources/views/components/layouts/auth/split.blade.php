@@ -76,7 +76,7 @@
                                 &ldquo;In the heart of nature, we find our true selves and the peace that urban life cannot provide.&rdquo;
                             </flux:heading>
                             <footer>
-                                <flux:heading class="text-white/80">Outdoor Explorer</flux:heading>
+                                <flux:heading class="text-white/80">PinjemTent Team</flux:heading>
                             </footer>
                         </div>
 
@@ -85,7 +85,7 @@
                                 &ldquo;Under the stars, every tent becomes a doorway to infinite possibilities and dreams.&rdquo;
                             </flux:heading>
                             <footer>
-                                <flux:heading class="text-white/80">Night Camper</flux:heading>
+                                <flux:heading class="text-white/80">PinjemTent Team</flux:heading>
                             </footer>
                         </div>
 
@@ -94,7 +94,7 @@
                                 &ldquo;Mountains teach us that the greatest views come after the most challenging climbs.&rdquo;
                             </flux:heading>
                             <footer>
-                                <flux:heading class="text-white/80">Mountain Guide</flux:heading>
+                                <flux:heading class="text-white/80">PinjemTent Team</flux:heading>
                             </footer>
                         </div>
                     </blockquote>
