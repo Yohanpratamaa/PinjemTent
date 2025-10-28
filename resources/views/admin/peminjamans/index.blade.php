@@ -18,11 +18,24 @@
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <!-- Search Input -->
                     <div class="md:col-span-2">
-                        <flux:input
-                            name="search"
-                            placeholder="Search by user name, unit code, or rental ID..."
-                            value="{{ request('search') }}"
-                        />
+                        <div class="relative">
+                            <flux:input
+                                name="search"
+                                placeholder="Search by user name, unit code, rental ID, or email..."
+                                value="{{ request('search') }}"
+                                {{-- class="pr-20" --}}
+                            />
+                            {{-- <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <kbd class="inline-flex items-center rounded border border-gray-200 px-1.5 py-0.5 text-xs font-mono text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                                    Ctrl K
+                                </kbd>
+                            </div> --}}
+                        </div>
+                        @if(request('search'))
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Searching for: <span class="font-medium">"{{ request('search') }}"</span>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Status Filter -->
@@ -39,20 +52,29 @@
 
                     <!-- Date Filter -->
                     <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            From Date
+                        </label>
                         <flux:input
                             type="date"
                             name="date_from"
                             placeholder="From date"
                             value="{{ request('date_from') }}"
+                            max="{{ request('date_to') ?: date('Y-m-d') }}"
                         />
                     </div>
 
                     <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            To Date
+                        </label>
                         <flux:input
                             type="date"
                             name="date_to"
                             placeholder="To date"
                             value="{{ request('date_to') }}"
+                            min="{{ request('date_from') }}"
+                            max="{{ date('Y-m-d') }}"
                         />
                     </div>
                 </div>
@@ -67,6 +89,41 @@
                     <flux:button type="button" variant="ghost" onclick="window.location.href='{{ route('admin.peminjamans.index') }}'">
                         Clear Filters
                     </flux:button>
+
+                    <!-- Active Filters Indicator -->
+                    @php
+                        $activeFilters = array_filter([
+                            'search' => request('search'),
+                            'status' => request('status'),
+                            'date_from' => request('date_from'),
+                            'date_to' => request('date_to')
+                        ]);
+                    @endphp
+
+                    @if(count($activeFilters) > 0)
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
+                            @foreach($activeFilters as $key => $value)
+                                <flux:badge color="blue" size="sm">
+                                    @switch($key)
+                                        @case('search')
+                                            Search: {{ Str::limit($value, 15) }}
+                                            @break
+                                        @case('status')
+                                            Status: {{ ucfirst($value) }}
+                                            @break
+                                        @case('date_from')
+                                            From: {{ \Carbon\Carbon::parse($value)->format('M d, Y') }}
+                                            @break
+                                        @case('date_to')
+                                            To: {{ \Carbon\Carbon::parse($value)->format('M d, Y') }}
+                                            @break
+                                    @endswitch
+                                </flux:badge>
+                            @endforeach
+                        </div>
+                    @endif
+
                     {{-- <flux:button type="button" variant="outline">
                         <flux:icon.document-arrow-down class="size-4" />
                         Export
@@ -142,6 +199,37 @@
 
         <!-- Rentals Table -->
         <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl overflow-hidden">
+            <!-- Results Header -->
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-neutral-900">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Rental Records
+                        </h3>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                            @if($peminjamans->total() > 0)
+                                Showing {{ $peminjamans->firstItem() }} to {{ $peminjamans->lastItem() }}
+                                of {{ $peminjamans->total() }} results
+                                @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                                    <span class="text-blue-600 dark:text-blue-400">(filtered)</span>
+                                @endif
+                            @else
+                                No results found
+                                @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                                    <span class="text-blue-600 dark:text-blue-400">with current filters</span>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+
+                    @if($peminjamans->total() > 0)
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            Last updated: {{ now()->format('M d, Y H:i') }}
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             @if($peminjamans->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -317,4 +405,192 @@
             @endif
         </div>
     </div>
+
+    <!-- JavaScript untuk meningkatkan filter functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Keyboard shortcut untuk search (Ctrl+K)
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    const searchInput = document.querySelector('input[name="search"]');
+                    if (searchInput) {
+                        searchInput.focus();
+                        searchInput.select();
+                    }
+                }
+            });
+
+            // Auto-submit form ketika status filter berubah
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function() {
+                    this.closest('form').submit();
+                });
+            }
+
+            // Auto-submit form ketika date filter berubah
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    // Tambahkan sedikit delay untuk memungkinkan user memilih kedua tanggal
+                    setTimeout(() => {
+                        this.closest('form').submit();
+                    }, 500);
+                });
+            });
+
+            // Live search dengan debounce
+            const searchInput = document.querySelector('input[name="search"]');
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    const form = this.closest('form');
+
+                    // Show loading indicator
+                    showLoadingIndicator();
+
+                    searchTimeout = setTimeout(() => {
+                        if (this.value.length >= 3 || this.value.length === 0) {
+                            form.submit();
+                        } else {
+                            hideLoadingIndicator();
+                        }
+                    }, 800); // 800ms delay
+                });
+            }
+
+            // Highlight active filters
+            highlightActiveFilters();
+
+            // Reset filter validation
+            const clearButton = document.querySelector('button[onclick*="peminjamans.index"]');
+            if (clearButton) {
+                clearButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = '{{ route("admin.peminjamans.index") }}';
+                });
+            }
+
+            // Validasi date range
+            validateDateRange();
+        });
+
+        function highlightActiveFilters() {
+            const params = new URLSearchParams(window.location.search);
+
+            // Highlight search input if active
+            const searchInput = document.querySelector('input[name="search"]');
+            if (searchInput && params.get('search')) {
+                searchInput.classList.add('ring-2', 'ring-blue-500');
+            }
+
+            // Highlight status filter if active
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect && params.get('status')) {
+                statusSelect.classList.add('ring-2', 'ring-blue-500');
+            }
+
+            // Highlight date filters if active
+            const dateFromInput = document.querySelector('input[name="date_from"]');
+            const dateToInput = document.querySelector('input[name="date_to"]');
+
+            if (dateFromInput && params.get('date_from')) {
+                dateFromInput.classList.add('ring-2', 'ring-blue-500');
+            }
+
+            if (dateToInput && params.get('date_to')) {
+                dateToInput.classList.add('ring-2', 'ring-blue-500');
+            }
+        }
+
+        function validateDateRange() {
+            const dateFromInput = document.querySelector('input[name="date_from"]');
+            const dateToInput = document.querySelector('input[name="date_to"]');
+
+            if (dateFromInput && dateToInput) {
+                function checkDateRange() {
+                    const fromDate = new Date(dateFromInput.value);
+                    const toDate = new Date(dateToInput.value);
+
+                    if (dateFromInput.value && dateToInput.value && fromDate > toDate) {
+                        // Show error message
+                        showDateError('End date cannot be before start date');
+                        dateToInput.value = '';
+                    } else {
+                        // Remove error message
+                        removeDateError();
+                    }
+                }
+
+                dateFromInput.addEventListener('change', checkDateRange);
+                dateToInput.addEventListener('change', checkDateRange);
+            }
+        }
+
+        function showDateError(message) {
+            removeDateError(); // Remove existing error first
+
+            const dateToInput = document.querySelector('input[name="date_to"]');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'mt-1 text-xs text-red-600 dark:text-red-400 date-error';
+            errorDiv.textContent = message;
+
+            dateToInput.parentNode.appendChild(errorDiv);
+            dateToInput.classList.add('border-red-500', 'ring-red-500');
+        }
+
+        function removeDateError() {
+            const errorDiv = document.querySelector('.date-error');
+            const dateToInput = document.querySelector('input[name="date_to"]');
+
+            if (errorDiv) {
+                errorDiv.remove();
+            }
+
+            if (dateToInput) {
+                dateToInput.classList.remove('border-red-500', 'ring-red-500');
+            }
+        }
+
+        function showLoadingIndicator() {
+            const searchInput = document.querySelector('input[name="search"]');
+            if (searchInput) {
+                // Add loading state to search input
+                searchInput.style.background = 'linear-gradient(90deg, #f3f4f6 25%, transparent 25%, transparent 50%, #f3f4f6 50%, #f3f4f6 75%, transparent 75%, transparent)';
+                searchInput.style.backgroundSize = '20px 20px';
+                searchInput.style.animation = 'loading 1s linear infinite';
+
+                // Add CSS animation if not exists
+                if (!document.querySelector('#loading-animation-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'loading-animation-style';
+                    style.textContent = `
+                        @keyframes loading {
+                            0% { background-position: 0 0; }
+                            100% { background-position: 20px 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+        }
+
+        function hideLoadingIndicator() {
+            const searchInput = document.querySelector('input[name="search"]');
+            if (searchInput) {
+                searchInput.style.background = '';
+                searchInput.style.backgroundSize = '';
+                searchInput.style.animation = '';
+            }
+        }
+
+        // Function untuk export data (untuk future implementation)
+        function exportData() {
+            const params = new URLSearchParams(window.location.search);
+            params.set('export', 'excel');
+            window.location.href = '{{ route("admin.peminjamans.index") }}?' + params.toString();
+        }
+    </script>
 </x-layouts.app>

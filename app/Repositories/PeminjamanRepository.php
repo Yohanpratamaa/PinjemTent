@@ -26,6 +26,23 @@ class PeminjamanRepository
     {
         $query = $this->model->with(['user', 'unit.kategoris']);
 
+        // Search functionality - cari berdasarkan nama user, kode unit, atau kode peminjaman
+        if (!empty($filters['search'])) {
+            $searchTerm = $filters['search'];
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('kode_peminjaman', 'like', "%{$searchTerm}%")
+                  ->orWhereHas('user', function ($userQuery) use ($searchTerm) {
+                      $userQuery->where('name', 'like', "%{$searchTerm}%")
+                               ->orWhere('email', 'like', "%{$searchTerm}%");
+                  })
+                  ->orWhereHas('unit', function ($unitQuery) use ($searchTerm) {
+                      $unitQuery->where('kode_unit', 'like', "%{$searchTerm}%")
+                               ->orWhere('nama_unit', 'like', "%{$searchTerm}%");
+                  })
+                  ->orWhere('id', 'like', "%{$searchTerm}%");
+            });
+        }
+
         // Filter berdasarkan status
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -41,7 +58,16 @@ class PeminjamanRepository
             $query->where('unit_id', $filters['unit_id']);
         }
 
-        // Filter berdasarkan tanggal
+        // Filter berdasarkan tanggal (memperbaiki mapping dari controller)
+        if (!empty($filters['date_from'])) {
+            $query->where('tanggal_pinjam', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->where('tanggal_pinjam', '<=', $filters['date_to']);
+        }
+
+        // Support untuk filter tanggal legacy
         if (!empty($filters['tanggal_mulai'])) {
             $query->where('tanggal_pinjam', '>=', $filters['tanggal_mulai']);
         }
