@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\KategoriController as AdminKategoriController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\PeminjamanController as AdminPeminjamanController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\User\TentController as UserTentController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -65,6 +66,10 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->name('admin.')->group(f
 // User Routes
 Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('user.dashboard');
+
+    // Tent rental routes
+    Route::get('/tents', [UserTentController::class, 'index'])->name('user.tents.index');
+    Route::get('/tents/{tent}', [UserTentController::class, 'show'])->name('user.tents.show');
 });
 
 // Legacy dashboard route (redirect based on role)

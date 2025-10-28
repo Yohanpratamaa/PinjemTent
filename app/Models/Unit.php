@@ -23,6 +23,7 @@ class Unit extends Model
         'merk',
         'kapasitas',
         'deskripsi',
+        'foto',
         'status',
         'stok',
         'harga_sewa_per_hari',
