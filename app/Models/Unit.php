@@ -64,6 +64,15 @@ class Unit extends Model
     }
 
     /**
+     * Relasi one-to-many dengan Cart
+     * Satu unit dapat berada di banyak keranjang
+     */
+    public function carts(): HasMany
+    {
+        return $this->hasMany(\App\Models\Cart::class);
+    }
+
+    /**
      * Format harga sewa per hari ke IDR
      */
     public function getFormattedHargaSewaPerHari(): string

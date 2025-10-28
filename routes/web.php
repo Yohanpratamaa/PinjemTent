@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\PeminjamanController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\TentController as UserTentController;
 use App\Http\Controllers\User\RentalHistoryController;
+use App\Http\Controllers\User\CartController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -79,6 +80,17 @@ Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
         Route::get('/', [\App\Http\Controllers\User\RentalHistoryController::class, 'index'])->name('index');
         Route::get('/{rental}', [\App\Http\Controllers\User\RentalHistoryController::class, 'show'])->name('show');
         Route::patch('/{rental}/cancel', [\App\Http\Controllers\User\RentalHistoryController::class, 'cancel'])->name('cancel');
+    });
+
+    // Cart routes
+    Route::prefix('cart')->name('user.cart.')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('index');
+        Route::post('/', [CartController::class, 'store'])->name('store');
+        Route::put('/{cart}', [CartController::class, 'update'])->name('update');
+        Route::delete('/{cart}', [CartController::class, 'destroy'])->name('destroy');
+        Route::delete('/', [CartController::class, 'clear'])->name('clear');
+        Route::get('/count', [CartController::class, 'count'])->name('count');
+        Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
     });
 });
 

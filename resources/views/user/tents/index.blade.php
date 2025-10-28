@@ -191,12 +191,41 @@
                         </div>
 
                         <!-- Action Button -->
-                        <div class="space-y-2">
+                        <div class="flex gap-2">
+                            <!-- Add to Cart Button -->
+                            @if($tent->available_stock > 0)
+                                <button
+                                    onclick="openCartModal({{ $tent->id }}, '{{ $tent->nama_unit }}', {{ $tent->harga_sewa_per_hari }}, {{ $tent->available_stock }})"
+                                    class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
+                                    title="Tambah ke Keranjang"
+                                >
+                                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005 16h12M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"/>
+                                    </svg>
+                                    Keranjang
+                                </button>
+                            @else
+                                <button
+                                    disabled
+                                    class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed"
+                                >
+                                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                    Stok Habis
+                                </button>
+                            @endif
+
+                            <!-- View Detail Button -->
                             <a
                                 href="{{ route('user.tents.show', $tent) }}"
-                                class="w-full inline-flex items-center justify-center px-4 py-2 border border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-medium rounded-lg transition-colors duration-200"
+                                class="inline-flex items-center justify-center px-3 py-2 border border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-medium rounded-lg transition-colors duration-200"
+                                title="Lihat Detail"
                             >
-                                Lihat Detail
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
                             </a>
                         </div>
                     </div>
@@ -263,4 +292,264 @@
             </div>
         @endif
     </div>
+
+    <!-- Add to Cart Modal -->
+    <div id="cartModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
+        <div class="w-full max-w-md mx-4 bg-white dark:bg-neutral-800 rounded-xl shadow-xl">
+            <div class="p-6">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        Tambah ke Keranjang
+                    </h3>
+                    <button
+                        onclick="closeCartModal()"
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Product Info -->
+                <div class="mb-4 p-3 bg-gray-50 dark:bg-neutral-700 rounded-lg">
+                    <h4 id="modalProductName" class="font-medium text-gray-900 dark:text-white"></h4>
+                    <p id="modalProductPrice" class="text-sm text-green-600 dark:text-green-400"></p>
+                    <p id="modalProductStock" class="text-xs text-gray-500 dark:text-gray-400"></p>
+                </div>
+
+                <!-- Form -->
+                <form id="addToCartForm" onsubmit="addToCart(event)">
+                    <input type="hidden" id="modalUnitId" name="unit_id">
+
+                    <!-- Quantity -->
+                    <div class="mb-4">
+                        <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Jumlah
+                        </label>
+                        <input
+                            type="number"
+                            id="quantity"
+                            name="quantity"
+                            min="1"
+                            value="1"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+                        >
+                    </div>
+
+                    <!-- Start Date -->
+                    <div class="mb-4">
+                        <label for="tanggal_mulai" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Tanggal Mulai
+                        </label>
+                        <input
+                            type="date"
+                            id="tanggal_mulai"
+                            name="tanggal_mulai"
+                            min="{{ date('Y-m-d') }}"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+                        >
+                    </div>
+
+                    <!-- End Date -->
+                    <div class="mb-4">
+                        <label for="tanggal_selesai" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Tanggal Selesai
+                        </label>
+                        <input
+                            type="date"
+                            id="tanggal_selesai"
+                            name="tanggal_selesai"
+                            min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+                        >
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-6">
+                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Catatan (Opsional)
+                        </label>
+                        <textarea
+                            id="notes"
+                            name="notes"
+                            rows="3"
+                            placeholder="Catatan tambahan untuk penyewaan..."
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+                        ></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3">
+                        <button
+                            type="button"
+                            onclick="closeCartModal()"
+                            class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium rounded-lg transition-colors duration-200"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            id="addToCartBtn"
+                            class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
+                        >
+                            Tambah ke Keranjang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Toast -->
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden">
+        <div id="toastContent" class="px-4 py-3 rounded-lg shadow-lg text-white font-medium">
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        let currentUnit = null;
+
+        function openCartModal(unitId, unitName, unitPrice, availableStock) {
+            currentUnit = {
+                id: unitId,
+                name: unitName,
+                price: unitPrice,
+                stock: availableStock
+            };
+
+            document.getElementById('modalUnitId').value = unitId;
+            document.getElementById('modalProductName').textContent = unitName;
+            document.getElementById('modalProductPrice').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(unitPrice) + ' / hari';
+            document.getElementById('modalProductStock').textContent = 'Stok tersedia: ' + availableStock + ' unit';
+            document.getElementById('quantity').max = availableStock;
+
+            // Reset form
+            document.getElementById('addToCartForm').reset();
+            document.getElementById('modalUnitId').value = unitId;
+            document.getElementById('quantity').value = 1;
+
+            // Set default dates
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            document.getElementById('tanggal_mulai').value = today.toISOString().split('T')[0];
+            document.getElementById('tanggal_selesai').value = tomorrow.toISOString().split('T')[0];
+
+            document.getElementById('cartModal').classList.remove('hidden');
+            document.getElementById('cartModal').classList.add('flex');
+        }
+
+        function closeCartModal() {
+            document.getElementById('cartModal').classList.add('hidden');
+            document.getElementById('cartModal').classList.remove('flex');
+        }
+
+        function addToCart(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const submitBtn = document.getElementById('addToCartBtn');
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menambahkan...';
+
+            fetch('{{ route('user.cart.store') }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeCartModal();
+                    updateCartCount();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
+            })
+            .finally(() => {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Tambah ke Keranjang';
+            });
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const toastContent = document.getElementById('toastContent');
+
+            toastContent.textContent = message;
+
+            if (type === 'success') {
+                toastContent.className = 'px-4 py-3 rounded-lg shadow-lg text-white font-medium bg-green-600';
+            } else {
+                toastContent.className = 'px-4 py-3 rounded-lg shadow-lg text-white font-medium bg-red-600';
+            }
+
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 5000);
+        }
+
+        function updateCartCount() {
+            fetch('{{ route('user.cart.count') }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Update cart badge if exists
+                    const cartBadge = document.getElementById('cartBadge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.count;
+                        cartBadge.style.display = data.count > 0 ? 'block' : 'none';
+                    }
+                })
+                .catch(error => console.error('Error updating cart count:', error));
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('cartModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCartModal();
+            }
+        });
+
+        // Update end date minimum when start date changes
+        document.getElementById('tanggal_mulai').addEventListener('change', function() {
+            const startDate = new Date(this.value);
+            const minEndDate = new Date(startDate);
+            minEndDate.setDate(minEndDate.getDate() + 1);
+
+            document.getElementById('tanggal_selesai').min = minEndDate.toISOString().split('T')[0];
+
+            // If end date is before new minimum, update it
+            const endDateInput = document.getElementById('tanggal_selesai');
+            if (new Date(endDateInput.value) <= startDate) {
+                endDateInput.value = minEndDate.toISOString().split('T')[0];
+            }
+        });
+
+        // Load cart count on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartCount();
+        });
+    </script>
+    @endpush
 </x-layouts.app>

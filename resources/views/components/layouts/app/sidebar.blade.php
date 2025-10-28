@@ -110,6 +110,25 @@
                             }
                             </script>
 
+                            <!-- Keranjang Belanja -->
+                            <a href="{{ route('user.cart.index') }}"
+                               wire:navigate
+                               class="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 rounded-lg cursor-pointer transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 group {{ request()->routeIs('user.cart.*') ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100' : '' }}">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-4 h-4 text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-all duration-200 {{ request()->routeIs('user.cart.*') ? 'text-zinc-700 dark:text-zinc-300' : '' }}"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005 16h12M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"/>
+                                    </svg>
+                                    <span>Keranjang</span>
+                                </div>
+
+                                <!-- Cart Badge -->
+                                <span id="cartBadge" class="bg-red-500 text-white text-xs rounded-full h-5 min-w-[20px] items-center justify-center px-1" style="display: none;">
+                                    0
+                                </span>
+                            </a>
+
                             <!-- Riwayat Penyewaan -->
                             <flux:navlist.item icon="clock" :href="route('user.rental-history.index')" :current="request()->routeIs('user.rental-history.*')" wire:navigate>
                                 Riwayat Penyewaan
@@ -256,6 +275,37 @@
         @endif
 
         {{ $slot }}
+
+        @auth
+            @if(auth()->user()->role === 'user')
+                <script>
+                    // Update cart count on page load
+                    document.addEventListener('DOMContentLoaded', function() {
+                        updateCartCount();
+                    });
+
+                    function updateCartCount() {
+                        fetch('{{ route('user.cart.count') }}')
+                            .then(response => response.json())
+                            .then(data => {
+                                const cartBadge = document.getElementById('cartBadge');
+                                if (cartBadge) {
+                                    cartBadge.textContent = data.count;
+                                    if (data.count > 0) {
+                                        cartBadge.style.display = 'flex';
+                                    } else {
+                                        cartBadge.style.display = 'none';
+                                    }
+                                }
+                            })
+                            .catch(error => console.error('Error updating cart count:', error));
+                    }
+
+                    // Expose updateCartCount globally for use in other scripts
+                    window.updateCartCount = updateCartCount;
+                </script>
+            @endif
+        @endauth
 
         @fluxScripts
     </body>

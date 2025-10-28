@@ -91,6 +91,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Relasi one-to-many dengan Cart
+     * Satu user dapat memiliki banyak item dalam keranjang
+     */
+    public function carts(): HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    /**
      * Scope untuk user dengan role tertentu
      */
     public function scopeByRole($query, $role)
