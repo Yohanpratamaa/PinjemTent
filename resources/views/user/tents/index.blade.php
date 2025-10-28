@@ -416,6 +416,8 @@
         let currentUnit = null;
 
         function openCartModal(unitId, unitName, unitPrice, availableStock) {
+            console.log('Opening cart modal for unit:', unitId);
+
             currentUnit = {
                 id: unitId,
                 name: unitName,
@@ -453,10 +455,17 @@
 
         function addToCart(event) {
             event.preventDefault();
+            console.log('Adding to cart...');
 
             const form = event.target;
             const formData = new FormData(form);
             const submitBtn = document.getElementById('addToCartBtn');
+
+            // Debug: Log form data
+            console.log('Form data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
 
             // Disable button and show loading
             submitBtn.disabled = true;
@@ -470,8 +479,15 @@
                     'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
                     showToast(data.message, 'success');
                     closeCartModal();
@@ -511,14 +527,21 @@
         }
 
         function updateCartCount() {
+            console.log('Updating cart count...');
             fetch('{{ route('user.cart.count') }}')
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Cart count:', data.count);
                     // Update cart badge if exists
                     const cartBadge = document.getElementById('cartBadge');
                     if (cartBadge) {
                         cartBadge.textContent = data.count;
-                        cartBadge.style.display = data.count > 0 ? 'block' : 'none';
+                        cartBadge.style.display = data.count > 0 ? 'flex' : 'none';
+                    }
+
+                    // Also update global cart count function for sidebar
+                    if (typeof window.updateCartCount === 'function') {
+                        window.updateCartCount();
                     }
                 })
                 .catch(error => console.error('Error updating cart count:', error));
@@ -548,6 +571,7 @@
 
         // Load cart count on page load
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, updating cart count...');
             updateCartCount();
         });
     </script>

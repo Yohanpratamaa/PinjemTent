@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class CartController extends Controller
@@ -36,6 +37,13 @@ class CartController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Log incoming request for debugging
+        Log::info('Cart store request received', [
+            'user_id' => Auth::id(),
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+
         $validated = $request->validate([
             'unit_id' => 'required|exists:units,id',
             'quantity' => 'required|integer|min:1',
@@ -44,11 +52,14 @@ class CartController extends Controller
             'notes' => 'nullable|string|max:500'
         ]);
 
+        Log::info('Cart store validation passed', ['validated_data' => $validated]);
+
         try {
             $unit = Unit::findOrFail($validated['unit_id']);
 
             // Check unit availability
             if (!$unit->is_available) {
+                Log::warning('Unit not available', ['unit_id' => $unit->id, 'status' => $unit->status]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Unit ini sedang tidak tersedia.'
@@ -57,6 +68,11 @@ class CartController extends Controller
 
             // Check stock availability
             if ($validated['quantity'] > $unit->available_stock) {
+                Log::warning('Insufficient stock', [
+                    'unit_id' => $unit->id,
+                    'requested_quantity' => $validated['quantity'],
+                    'available_stock' => $unit->available_stock
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => "Stok tidak mencukupi. Tersedia: {$unit->available_stock} unit."
@@ -87,6 +103,7 @@ class CartController extends Controller
                 ]);
 
                 $cartItem = $existingCartItem;
+                Log::info('Updated existing cart item', ['cart_item_id' => $cartItem->id]);
             } else {
                 // Create new cart item
                 $cartItem = Cart::create([
@@ -98,10 +115,16 @@ class CartController extends Controller
                     'notes' => $validated['notes'],
                     'harga_per_hari' => $unit->harga_sewa_per_hari
                 ]);
+                Log::info('Created new cart item', ['cart_item_id' => $cartItem->id]);
             }
 
             // Get updated cart count
             $cartCount = Cart::forUser(Auth::id())->count();
+
+            Log::info('Cart operation successful', [
+                'cart_item_id' => $cartItem->id,
+                'cart_count' => $cartCount
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -111,6 +134,11 @@ class CartController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Cart store error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menambahkan item ke keranjang. Silakan coba lagi.'

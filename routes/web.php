@@ -85,7 +85,7 @@ Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
     // Cart routes
     Route::prefix('cart')->name('user.cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
-        Route::post('/', [CartController::class, 'store'])->name('store');
+        Route::post('/add', [CartController::class, 'store'])->name('store');
         Route::put('/{cart}', [CartController::class, 'update'])->name('update');
         Route::delete('/{cart}', [CartController::class, 'destroy'])->name('destroy');
         Route::delete('/', [CartController::class, 'clear'])->name('clear');
@@ -93,6 +93,19 @@ Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
         Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
     });
 });
+
+// Test route for debugging
+Route::get('/test-cart', function () {
+    return view('test-cart');
+})->middleware('auth');
+
+Route::get('/manual-cart-test', function () {
+    return view('manual-cart-test');
+})->middleware('auth');
+
+Route::get('/simple-cart-test', function () {
+    return view('simple-cart-test');
+})->middleware('auth');
 
 // Legacy dashboard route (redirect based on role)
 Route::get('/dashboard', function () {
