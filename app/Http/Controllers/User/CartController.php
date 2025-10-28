@@ -308,34 +308,67 @@ class CartController extends Controller
      */
     public function checkout(): RedirectResponse
     {
+        Log::info('Checkout attempt started', ['user_id' => Auth::id()]);
+
         $cartItems = Cart::forUser(Auth::id())->with('unit')->get();
 
         if ($cartItems->isEmpty()) {
+            Log::warning('Checkout failed: empty cart', ['user_id' => Auth::id()]);
             return redirect()->route('user.cart.index')
                 ->with('error', 'Keranjang kosong. Tidak ada item untuk di-checkout.');
         }
+
+        Log::info('Cart items found for checkout', [
+            'user_id' => Auth::id(),
+            'item_count' => $cartItems->count(),
+            'cart_ids' => $cartItems->pluck('id')->toArray()
+        ]);
 
         DB::beginTransaction();
 
         try {
             foreach ($cartItems as $cartItem) {
+                // Generate unique kode_peminjaman
+                $kodePeminjaman = 'PJM-' . date('YmdHis') . '-' . str_pad($cartItem->id, 3, '0', STR_PAD_LEFT);
+
+                // Calculate penalty if applicable
+                $penalty = $cartItem->calculatePenalty();
+                $totalBayar = $cartItem->total_harga + $penalty;
+
+                Log::info('Creating peminjaman', [
+                    'cart_id' => $cartItem->id,
+                    'kode_peminjaman' => $kodePeminjaman,
+                    'penalty' => $penalty,
+                    'total_bayar' => $totalBayar
+                ]);
+
                 // Create peminjaman record
-                \App\Models\Peminjaman::create([
+                $peminjaman = \App\Models\Peminjaman::create([
                     'user_id' => Auth::id(),
                     'unit_id' => $cartItem->unit_id,
+                    'kode_peminjaman' => $kodePeminjaman,
                     'jumlah' => $cartItem->quantity,
                     'tanggal_pinjam' => $cartItem->tanggal_mulai,
                     'tanggal_kembali_rencana' => $cartItem->tanggal_selesai,
                     'harga_sewa_total' => $cartItem->total_harga,
-                    'catatan' => $cartItem->notes,
+                    'denda_total' => $penalty,
+                    'total_bayar' => $totalBayar,
+                    'catatan_peminjam' => $cartItem->notes ?? 'Checkout dari keranjang',
                     'status' => 'pending' // Pending approval
+                ]);
+
+                Log::info('Peminjaman created successfully', [
+                    'peminjaman_id' => $peminjaman->id,
+                    'kode_peminjaman' => $peminjaman->kode_peminjaman
                 ]);
 
                 // Delete cart item after successful conversion
                 $cartItem->delete();
+                Log::info('Cart item deleted', ['cart_id' => $cartItem->id]);
             }
 
             DB::commit();
+            Log::info('Checkout completed successfully', ['user_id' => Auth::id()]);
 
             return redirect()->route('user.rental-history.index')
                 ->with('success', 'Checkout berhasil! Semua pesanan akan diproses oleh admin.');
@@ -343,8 +376,14 @@ class CartController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
+            Log::error('Checkout failed', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return redirect()->route('user.cart.index')
-                ->with('error', 'Gagal melakukan checkout. Silakan coba lagi.');
+                ->with('error', 'Gagal melakukan checkout: ' . $e->getMessage());
         }
     }
 }
