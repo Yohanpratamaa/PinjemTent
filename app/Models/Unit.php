@@ -110,4 +110,41 @@ class Unit extends Model
         return $query->where('nama_unit', 'like', '%' . $search . '%')
                     ->orWhere('kode_unit', 'like', '%' . $search . '%');
     }
+
+    /**
+     * Get count of active rentals (currently being rented)
+     */
+    public function getActiveRentalsCountAttribute(): int
+    {
+        return $this->peminjamans()
+                    ->where('status', 'dipinjam')
+                    ->sum('jumlah');
+    }
+
+    /**
+     * Get active rental records
+     */
+    public function getActiveRentalsAttribute()
+    {
+        return $this->peminjamans()
+                    ->where('status', 'dipinjam')
+                    ->with('user')
+                    ->get();
+    }
+
+    /**
+     * Get available stock (total stock - currently rented)
+     */
+    public function getAvailableStockAttribute(): int
+    {
+        return max(0, $this->stok - $this->active_rentals_count);
+    }
+
+    /**
+     * Check if unit is available for rental
+     */
+    public function getIsAvailableAttribute(): bool
+    {
+        return $this->status === 'tersedia' && $this->available_stock > 0;
+    }
 }

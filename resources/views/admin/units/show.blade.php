@@ -145,33 +145,47 @@
                 <!-- Recent Rentals -->
                 <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Recent Rental History</h3>
-                    @if($unit->peminjamans->count() > 0)
+                    @if(isset($stats['recent_rentals']) && $stats['recent_rentals']->count() > 0)
                         <div class="space-y-4">
-                            @foreach($unit->peminjamans->take(5) as $peminjaman)
+                            @foreach($stats['recent_rentals'] as $peminjaman)
                                 <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                     <div>
                                         <p class="font-medium text-gray-900 dark:text-white">{{ $peminjaman->user->name }}</p>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
                                             {{ $peminjaman->tanggal_pinjam->format('M d, Y') }} -
-                                            {{ $peminjaman->tanggal_kembali?->format('M d, Y') ?? 'Not returned' }}
+                                            {{ $peminjaman->tanggal_kembali_rencana?->format('M d, Y') ?? 'No return date' }}
                                         </p>
+                                        @if($peminjaman->tanggal_kembali_aktual)
+                                            <p class="text-xs text-gray-500 dark:text-gray-500">
+                                                Actual return: {{ $peminjaman->tanggal_kembali_aktual->format('M d, Y') }}
+                                            </p>
+                                        @endif
                                     </div>
                                     <div class="text-right">
                                         @switch($peminjaman->status)
-                                            @case('active')
-                                                <flux:badge color="blue">Active</flux:badge>
+                                            @case('dipinjam')
+                                                <flux:badge color="blue">Currently Rented</flux:badge>
                                                 @break
-                                            @case('returned')
+                                            @case('dikembalikan')
                                                 <flux:badge color="green">Returned</flux:badge>
                                                 @break
-                                            @case('overdue')
+                                            @case('terlambat')
                                                 <flux:badge color="red">Overdue</flux:badge>
+                                                @break
+                                            @case('pending')
+                                                <flux:badge color="yellow">Pending</flux:badge>
+                                                @break
+                                            @case('dibatalkan')
+                                                <flux:badge color="gray">Cancelled</flux:badge>
                                                 @break
                                             @default
                                                 <flux:badge color="gray">{{ ucfirst($peminjaman->status) }}</flux:badge>
                                         @endswitch
                                         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                            Qty: {{ $peminjaman->jumlah }}
+                                            Qty: {{ $peminjaman->jumlah ?? 1 }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                            {{ $peminjaman->getFormattedHargaSewaTotal() }}
                                         </p>
                                     </div>
                                 </div>
@@ -194,6 +208,53 @@
                         </div>
                     @endif
                 </div>
+
+                <!-- Active Rentals Detail -->
+                @if(isset($stats['active_rentals']) && $stats['active_rentals']->count() > 0)
+                <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                        Currently Active Rentals
+                        <flux:badge color="blue" class="ml-2">{{ $stats['active_rentals']->count() }} rental(s)</flux:badge>
+                    </h3>
+                    <div class="space-y-4">
+                        @foreach($stats['active_rentals'] as $activeRental)
+                            <div class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                        <div>
+                                            <p class="font-medium text-gray-900 dark:text-white">{{ $activeRental->user->name }}</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                Code: {{ $activeRental->kode_peminjaman }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 ml-6">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                                            <strong>Rental Period:</strong> {{ $activeRental->tanggal_pinjam->format('M d, Y') }} -
+                                            {{ $activeRental->tanggal_kembali_rencana->format('M d, Y') }}
+                                        </p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                                            <strong>Quantity:</strong> {{ $activeRental->jumlah ?? 1 }} unit(s)
+                                        </p>
+                                        @if($activeRental->is_terlambat)
+                                            <p class="text-sm text-red-600 dark:text-red-400 font-medium">
+                                                ⚠️ Overdue since {{ $activeRental->tanggal_kembali_rencana->format('M d, Y') }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <flux:badge color="blue">Active</flux:badge>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        {{ $activeRental->getFormattedHargaSewaTotal() }}
+                                    </p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
 
             <!-- Sidebar -->
@@ -204,12 +265,12 @@
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Total Rentals</span>
-                            <span class="font-medium text-gray-900 dark:text-white">{{ $unit->peminjamans->count() }}</span>
+                            <span class="font-medium text-gray-900 dark:text-white">{{ $stats['total_rentals'] ?? $unit->peminjamans->count() }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Active Rentals</span>
-                            <span class="font-medium text-gray-900 dark:text-white">
-                                {{ $unit->peminjamans->where('status', 'active')->count() }}
+                            <span class="font-medium text-blue-600 dark:text-blue-400">
+                                {{ $stats['active_rentals_count'] ?? $unit->active_rentals_count }}
                             </span>
                         </div>
                         <div class="flex items-center justify-between">
@@ -217,8 +278,24 @@
                             <span class="font-medium text-gray-900 dark:text-white">{{ $unit->kategoris->count() }}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Available Stock</span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Total Stock</span>
                             <span class="font-medium text-gray-900 dark:text-white">{{ $unit->stok }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Available Stock</span>
+                            <span class="font-medium text-green-600 dark:text-green-400">
+                                {{ $stats['available_stock'] ?? $unit->available_stock }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Availability Status</span>
+                            <span class="font-medium">
+                                @if($unit->is_available)
+                                    <flux:badge color="green">Available</flux:badge>
+                                @else
+                                    <flux:badge color="red">Not Available</flux:badge>
+                                @endif
+                            </span>
                         </div>
                     </div>
                 </div>

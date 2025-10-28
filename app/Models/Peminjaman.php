@@ -27,6 +27,7 @@ class Peminjaman extends Model
         'user_id',
         'unit_id',
         'kode_peminjaman',
+        'jumlah',
         'tanggal_pinjam',
         'tanggal_kembali_rencana',
         'tanggal_kembali_aktual',
@@ -39,6 +40,7 @@ class Peminjaman extends Model
     ];
 
     protected $casts = [
+        'jumlah' => 'integer',
         'tanggal_pinjam' => 'date',
         'tanggal_kembali_rencana' => 'date',
         'tanggal_kembali_aktual' => 'date',
@@ -120,17 +122,18 @@ class Peminjaman extends Model
     }
 
     /**
-     * Calculate total rental cost based on unit price and rental days
+     * Calculate total rental cost based on unit price, rental days, and quantity
      */
     public function calculateHargaSewaTotal(): float
     {
         $hargaPerHari = $this->unit->harga_sewa_per_hari ?? 50000;
         $jumlahHari = $this->calculateRentalDays();
-        return $hargaPerHari * $jumlahHari;
+        $jumlahUnit = $this->jumlah ?? 1;
+        return $hargaPerHari * $jumlahHari * $jumlahUnit;
     }
 
     /**
-     * Calculate late fee based on unit late fee and late days
+     * Calculate late fee based on unit late fee, late days, and quantity
      */
     public function calculateDendaTotal(): float
     {
@@ -140,7 +143,8 @@ class Peminjaman extends Model
 
         $dendaPerHari = $this->unit->denda_per_hari ?? 10000;
         $hariTerlambat = $this->calculateLateDays();
-        return $dendaPerHari * $hariTerlambat;
+        $jumlahUnit = $this->jumlah ?? 1;
+        return $dendaPerHari * $hariTerlambat * $jumlahUnit;
     }
 
     /**

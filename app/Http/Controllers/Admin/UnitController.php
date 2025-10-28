@@ -106,8 +106,24 @@ class UnitController extends Controller
      */
     public function show(Unit $unit): View
     {
-        $unit->load(['kategoris', 'peminjamans.user']);
-        return view('admin.units.show', compact('unit'));
+        // Load relations dengan data yang diperlukan untuk active rentals
+        $unit->load([
+            'kategoris',
+            'peminjamans' => function($query) {
+                $query->with('user')->orderBy('created_at', 'desc');
+            }
+        ]);
+
+        // Calculate statistics
+        $stats = [
+            'total_rentals' => $unit->peminjamans->count(),
+            'active_rentals_count' => $unit->active_rentals_count,
+            'available_stock' => $unit->available_stock,
+            'recent_rentals' => $unit->peminjamans()->with('user')->orderBy('created_at', 'desc')->limit(5)->get(),
+            'active_rentals' => $unit->active_rentals
+        ];
+
+        return view('admin.units.show', compact('unit', 'stats'));
     }
 
     /**

@@ -50,17 +50,20 @@ class PeminjamanSeeder extends Seeder
                     $tanggalKembaliAktual = $tanggalKembaliRencana->copy()->addDays(rand(1, 5));
                 }
 
-                // Calculate pricing based on unit's pricing
+                // Random quantity (1-3 units per rental)
+                $jumlah = rand(1, 3);
+
+                // Calculate pricing based on unit's pricing and quantity
                 $hargaSewaPerHari = $unit->harga_sewa_per_hari ?? 50000;
                 $jumlahHari = $tanggalPinjam->diffInDays($tanggalKembaliRencana) + 1;
-                $hargaSewaTotal = $hargaSewaPerHari * $jumlahHari;
+                $hargaSewaTotal = $hargaSewaPerHari * $jumlahHari * $jumlah;
 
                 // Calculate late fees if applicable
                 $dendaTotal = 0;
                 if ($status === 'terlambat' && $tanggalKembaliAktual) {
                     $hariTerlambat = max(0, $tanggalKembaliAktual->diffInDays($tanggalKembaliRencana));
                     $dendaPerHari = $unit->denda_per_hari ?? 10000;
-                    $dendaTotal = $hariTerlambat * $dendaPerHari;
+                    $dendaTotal = $hariTerlambat * $dendaPerHari * $jumlah; // Include quantity in fine calculation
                 }
 
                 $totalBayar = $hargaSewaTotal + $dendaTotal;
@@ -69,6 +72,7 @@ class PeminjamanSeeder extends Seeder
                     'user_id' => $user->id,
                     'unit_id' => $unit->id,
                     'kode_peminjaman' => 'PJM-' . $tanggalPinjam->format('Ymd') . '-' . str_pad($i + 1, 3, '0', STR_PAD_LEFT),
+                    'jumlah' => $jumlah,
                     'tanggal_pinjam' => $tanggalPinjam,
                     'tanggal_kembali_rencana' => $tanggalKembaliRencana,
                     'tanggal_kembali_aktual' => $tanggalKembaliAktual,
@@ -76,7 +80,7 @@ class PeminjamanSeeder extends Seeder
                     'harga_sewa_total' => $hargaSewaTotal,
                     'denda_total' => $dendaTotal,
                     'total_bayar' => $totalBayar,
-                    'catatan_peminjam' => 'Peminjaman ' . $unit->nama_unit . ' untuk keperluan camping',
+                    'catatan_peminjam' => 'Peminjaman ' . $jumlah . ' unit ' . $unit->nama_unit . ' untuk keperluan camping',
                     'catatan_admin' => $status === 'terlambat' ? 'Terlambat ' . ($tanggalKembaliAktual ? $tanggalKembaliAktual->diffInDays($tanggalKembaliRencana) : 0) . ' hari' : null,
                     'created_at' => $tanggalPinjam,
                     'updated_at' => $tanggalKembaliAktual ?? $tanggalPinjam,
