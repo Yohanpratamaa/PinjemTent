@@ -307,6 +307,7 @@
             @endif
         @endauth
 
+        @stack('scripts')
         @fluxScripts
     </body>
 </html>

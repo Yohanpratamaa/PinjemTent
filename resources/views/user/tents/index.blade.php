@@ -294,124 +294,248 @@
     </div>
 
     <!-- Add to Cart Modal -->
-    <div id="cartModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-        <div class="w-full max-w-md mx-4 bg-white dark:bg-neutral-800 rounded-xl shadow-xl">
-            <div class="p-6">
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Tambah ke Keranjang
-                    </h3>
-                    <button
-                        onclick="closeCartModal()"
-                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+    <div id="cartModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 animate-fade-in">
+        <!-- Backdrop with Blur Effect -->
+        <div class="absolute inset-0 backdrop-blur-sm bg-gradient-to-br from-blue-50/70 via-white/40 to-green-50/70 dark:from-gray-900/70 dark:via-gray-800/40 dark:to-gray-900/70"></div>
+
+        <!-- Modal Container -->
+        <div class="relative w-full max-w-lg transform transition-all duration-300 ease-out scale-95 opacity-0" id="modalContainer">
+            <!-- Background with Gradient and Glass Effect -->
+            <div class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+                <!-- Header with Gradient Background -->
+                <div class="bg-gradient-to-r from-green-500 to-blue-500 p-6 text-white relative overflow-hidden">
+                    <!-- Decorative Elements -->
+                    <div class="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-white/10 rounded-full"></div>
+                    <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-white/5 rounded-full"></div>
+
+                    <div class="relative flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005 16h12M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold">Tambah ke Keranjang</h3>
+                                <p class="text-white/80 text-sm">Pilih tanggal dan jumlah sewa</p>
+                            </div>
+                        </div>
+                        <button
+                            onclick="closeCartModal()"
+                            class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Product Info -->
-                <div class="mb-4 p-3 bg-gray-50 dark:bg-neutral-700 rounded-lg">
-                    <h4 id="modalProductName" class="font-medium text-gray-900 dark:text-white"></h4>
-                    <p id="modalProductPrice" class="text-sm text-green-600 dark:text-green-400"></p>
-                    <p id="modalProductStock" class="text-xs text-gray-500 dark:text-gray-400"></p>
+                <!-- Product Info Card -->
+                <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-4 rounded-xl border border-green-200/50 dark:border-green-700/30">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                🏕️
+                            </div>
+                            <div class="flex-1">
+                                <h4 id="modalProductName" class="font-bold text-gray-900 dark:text-white text-lg"></h4>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <p id="modalProductPrice" class="text-green-600 dark:text-green-400 font-semibold"></p>
+                                    <span class="w-1 h-1 bg-gray-400 rounded-full"></span>
+                                    <p id="modalProductStock" class="text-gray-500 dark:text-gray-400 text-sm"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Form -->
-                <form id="addToCartForm" onsubmit="addToCart(event)">
-                    <input type="hidden" id="modalUnitId" name="unit_id">
+                <div class="p-6">
+                    <form id="addToCartForm" onsubmit="addToCart(event)" class="space-y-5">
+                        <input type="hidden" id="modalUnitId" name="unit_id">
 
-                    <!-- Quantity -->
-                    <div class="mb-4">
-                        <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Jumlah
-                        </label>
-                        <input
-                            type="number"
-                            id="quantity"
-                            name="quantity"
-                            min="1"
-                            value="1"
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                        >
-                    </div>
+                        <!-- Quantity -->
+                        <div class="space-y-2">
+                            <label for="quantity" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                                </svg>
+                                Jumlah
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    id="quantity"
+                                    name="quantity"
+                                    min="1"
+                                    value="1"
+                                    required
+                                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white transition-all duration-200 text-center font-semibold text-lg"
+                                >
+                                <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- Start Date -->
-                    <div class="mb-4">
-                        <label for="tanggal_mulai" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Tanggal Mulai
-                        </label>
-                        <input
-                            type="date"
-                            id="tanggal_mulai"
-                            name="tanggal_mulai"
-                            min="{{ date('Y-m-d') }}"
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                        >
-                    </div>
+                        <!-- Date Range -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Start Date -->
+                            <div class="space-y-2">
+                                <label for="tanggal_mulai" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Tanggal Mulai
+                                </label>
+                                <input
+                                    type="date"
+                                    id="tanggal_mulai"
+                                    name="tanggal_mulai"
+                                    min="{{ date('Y-m-d') }}"
+                                    required
+                                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                >
+                            </div>
 
-                    <!-- End Date -->
-                    <div class="mb-4">
-                        <label for="tanggal_selesai" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Tanggal Selesai
-                        </label>
-                        <input
-                            type="date"
-                            id="tanggal_selesai"
-                            name="tanggal_selesai"
-                            min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                        >
-                    </div>
+                            <!-- End Date -->
+                            <div class="space-y-2">
+                                <label for="tanggal_selesai" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Tanggal Selesai
+                                </label>
+                                <input
+                                    type="date"
+                                    id="tanggal_selesai"
+                                    name="tanggal_selesai"
+                                    min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                                    required
+                                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                >
+                            </div>
+                        </div>
 
-                    <!-- Notes -->
-                    <div class="mb-6">
-                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Catatan (Opsional)
-                        </label>
-                        <textarea
-                            id="notes"
-                            name="notes"
-                            rows="3"
-                            placeholder="Catatan tambahan untuk penyewaan..."
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                        ></textarea>
-                    </div>
+                        <!-- Duration Display -->
+                        <div id="durationDisplay" class="hidden bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-blue-800 dark:text-blue-200">Durasi Sewa:</span>
+                                <span id="durationText" class="font-bold text-blue-600 dark:text-blue-400"></span>
+                            </div>
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-sm text-blue-600 dark:text-blue-300">Estimasi Total:</span>
+                                <span id="estimatedTotal" class="font-bold text-green-600 dark:text-green-400"></span>
+                            </div>
+                        </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex gap-3">
-                        <button
-                            type="button"
-                            onclick="closeCartModal()"
-                            class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium rounded-lg transition-colors duration-200"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            type="submit"
-                            id="addToCartBtn"
-                            class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
-                        >
-                            Tambah ke Keranjang
-                        </button>
-                    </div>
-                </form>
+                        <!-- Notes -->
+                        <div class="space-y-2">
+                            <label for="notes" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Catatan (Opsional)
+                            </label>
+                            <textarea
+                                id="notes"
+                                name="notes"
+                                rows="3"
+                                placeholder="Contoh: Mohon disiapkan yang masih baru, untuk acara camping keluarga..."
+                                class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white transition-all duration-200 resize-none"
+                            ></textarea>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onclick="closeCartModal()"
+                                class="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                id="addToCartBtn"
+                                class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-lg flex items-center justify-center space-x-2"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005 16h12M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"/>
+                                </svg>
+                                <span>Tambah ke Keranjang</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Success/Error Toast -->
-    <div id="toast" class="fixed top-4 right-4 z-50 hidden">
-        <div id="toastContent" class="px-4 py-3 rounded-lg shadow-lg text-white font-medium">
+    <!-- Enhanced Success/Error Toast -->
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden transform transition-all duration-300">
+        <div id="toastContent" class="px-6 py-4 rounded-xl shadow-2xl text-white font-semibold flex items-center space-x-3 min-w-[300px]">
+            <!-- Icon will be added dynamically -->
         </div>
     </div>
 
     @push('scripts')
+    <style>
+        /* Custom animations for modal */
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-show {
+            opacity: 1 !important;
+            transform: scale(1) !important;
+        }
+
+        .modal-hide {
+            opacity: 0 !important;
+            transform: scale(0.95) !important;
+        }
+
+        /* Enhance form inputs */
+        input:focus, textarea:focus {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+        }
+
+        /* Loading button animation */
+        .btn-loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+    </style>
+
     <script>
         let currentUnit = null;
 
@@ -444,13 +568,61 @@
             document.getElementById('tanggal_mulai').value = today.toISOString().split('T')[0];
             document.getElementById('tanggal_selesai').value = tomorrow.toISOString().split('T')[0];
 
-            document.getElementById('cartModal').classList.remove('hidden');
-            document.getElementById('cartModal').classList.add('flex');
+            // Show modal with animation
+            const modal = document.getElementById('cartModal');
+            const container = document.getElementById('modalContainer');
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            // Trigger animation
+            setTimeout(() => {
+                container.classList.add('modal-show');
+            }, 10);
+
+            // Calculate initial duration
+            calculateDuration();
         }
 
         function closeCartModal() {
-            document.getElementById('cartModal').classList.add('hidden');
-            document.getElementById('cartModal').classList.remove('flex');
+            const modal = document.getElementById('cartModal');
+            const container = document.getElementById('modalContainer');
+
+            // Hide with animation
+            container.classList.remove('modal-show');
+            container.classList.add('modal-hide');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                container.classList.remove('modal-hide');
+
+                // Hide duration display
+                document.getElementById('durationDisplay').classList.add('hidden');
+            }, 300);
+        }
+
+        function calculateDuration() {
+            const startDate = document.getElementById('tanggal_mulai').value;
+            const endDate = document.getElementById('tanggal_selesai').value;
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+
+            if (startDate && endDate && currentUnit) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end dates
+
+                if (diffDays > 0) {
+                    const totalCost = quantity * diffDays * currentUnit.price;
+
+                    document.getElementById('durationText').textContent = `${diffDays} hari`;
+                    document.getElementById('estimatedTotal').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(totalCost);
+                    document.getElementById('durationDisplay').classList.remove('hidden');
+                } else {
+                    document.getElementById('durationDisplay').classList.add('hidden');
+                }
+            }
         }
 
         function addToCart(event) {
@@ -467,9 +639,15 @@
                 console.log(key, value);
             }
 
-            // Disable button and show loading
+            // Show loading state
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Menambahkan...';
+            submitBtn.classList.add('btn-loading');
+            submitBtn.innerHTML = `
+                <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Menambahkan...</span>
+            `;
 
             fetch('{{ route('user.cart.store') }}', {
                 method: 'POST',
@@ -501,9 +679,15 @@
                 showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
             })
             .finally(() => {
-                // Re-enable button
+                // Reset button state
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Tambah ke Keranjang';
+                submitBtn.classList.remove('btn-loading');
+                submitBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005 16h12M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"/>
+                    </svg>
+                    <span>Tambah ke Keranjang</span>
+                `;
             });
         }
 
@@ -511,18 +695,50 @@
             const toast = document.getElementById('toast');
             const toastContent = document.getElementById('toastContent');
 
-            toastContent.textContent = message;
+            let icon = '';
+            let className = '';
 
             if (type === 'success') {
-                toastContent.className = 'px-4 py-3 rounded-lg shadow-lg text-white font-medium bg-green-600';
+                icon = `
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                `;
+                className = 'px-6 py-4 rounded-xl shadow-2xl text-white font-semibold bg-gradient-to-r from-green-500 to-emerald-500 border border-green-300 flex items-center space-x-3 min-w-[300px]';
             } else {
-                toastContent.className = 'px-4 py-3 rounded-lg shadow-lg text-white font-medium bg-red-600';
+                icon = `
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                `;
+                className = 'px-6 py-4 rounded-xl shadow-2xl text-white font-semibold bg-gradient-to-r from-red-500 to-pink-500 border border-red-300 flex items-center space-x-3 min-w-[300px]';
             }
+
+            toastContent.className = className;
+            toastContent.innerHTML = `${icon}<span>${message}</span>`;
 
             toast.classList.remove('hidden');
 
+            // Add animation
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
+
             setTimeout(() => {
-                toast.classList.add('hidden');
+                toast.style.transform = 'translateX(0)';
+                toast.style.opacity = '1';
+                toast.style.transition = 'all 0.3s ease-out';
+            }, 10);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
             }, 5000);
         }
 
@@ -547,6 +763,42 @@
                 .catch(error => console.error('Error updating cart count:', error));
         }
 
+        // Event listeners for form changes
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, updating cart count...');
+            updateCartCount();
+
+            // Add event listeners for date and quantity changes
+            const quantityInput = document.getElementById('quantity');
+            const startDateInput = document.getElementById('tanggal_mulai');
+            const endDateInput = document.getElementById('tanggal_selesai');
+
+            if (quantityInput) {
+                quantityInput.addEventListener('input', calculateDuration);
+            }
+
+            if (startDateInput) {
+                startDateInput.addEventListener('change', function() {
+                    const startDate = new Date(this.value);
+                    const minEndDate = new Date(startDate);
+                    minEndDate.setDate(minEndDate.getDate() + 1);
+
+                    endDateInput.min = minEndDate.toISOString().split('T')[0];
+
+                    // If end date is before new minimum, update it
+                    if (new Date(endDateInput.value) <= startDate) {
+                        endDateInput.value = minEndDate.toISOString().split('T')[0];
+                    }
+
+                    calculateDuration();
+                });
+            }
+
+            if (endDateInput) {
+                endDateInput.addEventListener('change', calculateDuration);
+            }
+        });
+
         // Close modal when clicking outside
         document.getElementById('cartModal').addEventListener('click', function(e) {
             if (e.target === this) {
@@ -554,25 +806,14 @@
             }
         });
 
-        // Update end date minimum when start date changes
-        document.getElementById('tanggal_mulai').addEventListener('change', function() {
-            const startDate = new Date(this.value);
-            const minEndDate = new Date(startDate);
-            minEndDate.setDate(minEndDate.getDate() + 1);
-
-            document.getElementById('tanggal_selesai').min = minEndDate.toISOString().split('T')[0];
-
-            // If end date is before new minimum, update it
-            const endDateInput = document.getElementById('tanggal_selesai');
-            if (new Date(endDateInput.value) <= startDate) {
-                endDateInput.value = minEndDate.toISOString().split('T')[0];
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('cartModal');
+                if (!modal.classList.contains('hidden')) {
+                    closeCartModal();
+                }
             }
-        });
-
-        // Load cart count on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, updating cart count...');
-            updateCartCount();
         });
     </script>
     @endpush
