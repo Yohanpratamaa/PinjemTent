@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Cart Update Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Cart Update Debug Test</h1>
+
+    <div class="test-section">
+        <h2>Manual Update Test</h2>
+        <p>Menguji update cart item ID 2 dengan data:</p>
+        <ul>
+            <li>Quantity: 3</li>
+            <li>Start Date: 2025-10-28</li>
+            <li>End Date: 2025-11-05 (8 hari, ada denda)</li>
+        </ul>
+        <button onclick="testUpdate()">Test Update</button>
+        <div id="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Current Cart Data</h2>
+        <button onclick="getCartData()">Get Cart Data</button>
+        <div id="cartData"></div>
+    </div>
+
+    <script>
+        function testUpdate() {
+            const cartId = 2;
+            const data = {
+                quantity: 3,
+                tanggal_mulai: '2025-10-28',
+                tanggal_selesai: '2025-11-05',
+                notes: 'Test manual update'
+            };
+
+            console.log('Testing update for cart ID:', cartId);
+            console.log('Data:', data);
+
+            document.getElementById('result').innerHTML = '<p>Testing...</p>';
+
+            fetch(`/user/cart/${cartId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 'no-token'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    return response.text();
+                })
+                .then(text => {
+                    console.log('Response text:', text);
+                    try {
+                        const data = JSON.parse(text);
+                        document.getElementById('result').innerHTML = `
+                        <div class="${data.success ? 'success' : 'error'}">
+                            <h3>Response:</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                    } catch (e) {
+                        document.getElementById('result').innerHTML = `
+                        <div class="error">
+                            <h3>Raw Response:</h3>
+                            <pre>${text}</pre>
+                        </div>
+                    `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').innerHTML = `
+                    <div class="error">
+                        <h3>Error:</h3>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+                });
+        }
+
+        function getCartData() {
+            fetch('/user/cart/count')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('cartData').innerHTML = `
+                    <div class="success">
+                        <h3>Cart Count:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+                })
+                .catch(error => {
+                    document.getElementById('cartData').innerHTML = `
+                    <div class="error">
+                        <h3>Error getting cart data:</h3>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+                });
+        }
+
+        // Auto get cart data on load
+        document.addEventListener('DOMContentLoaded', getCartData);
+    </script>
+</body>
+
+</html>

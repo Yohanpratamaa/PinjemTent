@@ -151,11 +151,16 @@ class CartController extends Controller
      */
     public function update(Request $request, Cart $cart): JsonResponse
     {
-        // Log incoming request
+        // Log incoming request with more detail
         Log::info('Cart update request received', [
             'cart_id' => $cart->id,
             'user_id' => Auth::id(),
-            'request_data' => $request->all()
+            'request_method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+            'request_data' => $request->all(),
+            'request_input' => $request->input(),
+            'request_json' => $request->json()->all(),
+            'raw_body' => $request->getContent()
         ]);
 
         // Check ownership
@@ -171,14 +176,28 @@ class CartController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'quantity' => 'required|integer|min:1',
-            'tanggal_mulai' => 'required|date|after_or_equal:today',
-            'tanggal_selesai' => 'required|date|after:tanggal_mulai',
-            'notes' => 'nullable|string|max:500'
-        ]);
+        try {
+            $validated = $request->validate([
+                'quantity' => 'required|integer|min:1',
+                'tanggal_mulai' => 'required|date|after_or_equal:today',
+                'tanggal_selesai' => 'required|date|after:tanggal_mulai',
+                'notes' => 'nullable|string|max:500'
+            ]);
 
-        Log::info('Cart update validation passed', ['validated_data' => $validated]);
+            Log::info('Cart update validation passed', ['validated_data' => $validated]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Cart update validation failed', [
+                'cart_id' => $cart->id,
+                'validation_errors' => $e->errors(),
+                'input_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid.',
+                'errors' => $e->errors()
+            ], 422);
+        }
 
         try {
             // Check stock availability - allow current quantity

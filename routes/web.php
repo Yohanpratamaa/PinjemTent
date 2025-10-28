@@ -107,6 +107,10 @@ Route::get('/simple-cart-test', function () {
     return view('simple-cart-test');
 })->middleware('auth');
 
+Route::get('/test-cart-update', function () {
+    return view('test_cart_update');
+})->middleware('auth');
+
 // Legacy dashboard route (redirect based on role)
 Route::get('/dashboard', function () {
     $user = Auth::user();

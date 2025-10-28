@@ -341,16 +341,16 @@
             const startDateInput = cartItem.querySelector('input[type="date"]:nth-of-type(1)');
             const endDateInput = cartItem.querySelector('input[type="date"]:nth-of-type(2)');
 
-            const formData = new FormData();
+            let requestData = {};
 
             if (field === 'quantity') {
-                formData.append('quantity', value);
-                formData.append('tanggal_mulai', startDateInput.value);
-                formData.append('tanggal_selesai', endDateInput.value);
+                requestData = {
+                    quantity: parseInt(value),
+                    tanggal_mulai: startDateInput.value,
+                    tanggal_selesai: endDateInput.value,
+                    notes: ''
+                };
             } else if (field === 'tanggal_mulai') {
-                formData.append('quantity', quantityInput.value);
-                formData.append('tanggal_mulai', value);
-
                 // Update minimum end date
                 const startDate = new Date(value);
                 const minEndDate = new Date(startDate);
@@ -361,10 +361,14 @@
                 // If current end date is invalid, update it
                 if (new Date(endDateInput.value) <= startDate) {
                     endDateInput.value = minEndDateStr;
-                    formData.append('tanggal_selesai', minEndDateStr);
-                } else {
-                    formData.append('tanggal_selesai', endDateInput.value);
                 }
+
+                requestData = {
+                    quantity: parseInt(quantityInput.value),
+                    tanggal_mulai: value,
+                    tanggal_selesai: endDateInput.value,
+                    notes: ''
+                };
             } else if (field === 'tanggal_selesai') {
                 // Validate that end date is after start date
                 const startDate = new Date(startDateInput.value);
@@ -377,27 +381,23 @@
                     return;
                 }
 
-                formData.append('quantity', quantityInput.value);
-                formData.append('tanggal_mulai', startDateInput.value);
-                formData.append('tanggal_selesai', value);
+                requestData = {
+                    quantity: parseInt(quantityInput.value),
+                    tanggal_mulai: startDateInput.value,
+                    tanggal_selesai: value,
+                    notes: ''
+                };
             }
 
-            // Add empty notes
-            formData.append('notes', '');
-
-            console.log('Form data:', {
-                quantity: formData.get('quantity'),
-                tanggal_mulai: formData.get('tanggal_mulai'),
-                tanggal_selesai: formData.get('tanggal_selesai'),
-                notes: formData.get('notes')
-            });
+            console.log('Request data:', requestData);
 
             fetch(`/user/cart/${cartId}`, {
                 method: 'PUT',
-                body: formData,
+                body: JSON.stringify(requestData),
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 }
             })
             .then(response => response.json())
