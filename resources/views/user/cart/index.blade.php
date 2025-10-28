@@ -129,7 +129,7 @@
                                             </label>
                                             <input
                                                 type="date"
-                                                min="{{ $item->tanggal_mulai->addDay()->format('Y-m-d') }}"
+                                                min="{{ $item->tanggal_mulai->addDays(1)->format('Y-m-d') }}"
                                                 value="{{ $item->tanggal_selesai->format('Y-m-d') }}"
                                                 onchange="updateCartItem({{ $item->id }}, 'tanggal_selesai', this.value)"
                                                 class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
@@ -333,37 +333,66 @@
     @push('scripts')
     <script>
         function updateCartItem(cartId, field, value) {
+            console.log('Updating cart item:', cartId, field, value);
+
             // Gather all current form data for this cart item
             const cartItem = document.getElementById(`cartItem_${cartId}`);
+            const quantityInput = cartItem.querySelector('input[type="number"]');
+            const startDateInput = cartItem.querySelector('input[type="date"]:nth-of-type(1)');
+            const endDateInput = cartItem.querySelector('input[type="date"]:nth-of-type(2)');
+
             const formData = new FormData();
 
             if (field === 'quantity') {
                 formData.append('quantity', value);
-                formData.append('tanggal_mulai', cartItem.querySelector('input[type="date"]:nth-of-type(1)').value);
-                formData.append('tanggal_selesai', cartItem.querySelector('input[type="date"]:nth-of-type(2)').value);
+                formData.append('tanggal_mulai', startDateInput.value);
+                formData.append('tanggal_selesai', endDateInput.value);
             } else if (field === 'tanggal_mulai') {
-                formData.append('quantity', cartItem.querySelector('input[type="number"]').value);
+                formData.append('quantity', quantityInput.value);
                 formData.append('tanggal_mulai', value);
-                formData.append('tanggal_selesai', cartItem.querySelector('input[type="date"]:nth-of-type(2)').value);
 
                 // Update minimum end date
-                const endDateInput = cartItem.querySelector('input[type="date"]:nth-of-type(2)');
                 const startDate = new Date(value);
                 const minEndDate = new Date(startDate);
                 minEndDate.setDate(minEndDate.getDate() + 1);
-                endDateInput.min = minEndDate.toISOString().split('T')[0];
+                const minEndDateStr = minEndDate.toISOString().split('T')[0];
+                endDateInput.min = minEndDateStr;
 
+                // If current end date is invalid, update it
                 if (new Date(endDateInput.value) <= startDate) {
-                    endDateInput.value = minEndDate.toISOString().split('T')[0];
-                    formData.set('tanggal_selesai', endDateInput.value);
+                    endDateInput.value = minEndDateStr;
+                    formData.append('tanggal_selesai', minEndDateStr);
+                } else {
+                    formData.append('tanggal_selesai', endDateInput.value);
                 }
             } else if (field === 'tanggal_selesai') {
-                formData.append('quantity', cartItem.querySelector('input[type="number"]').value);
-                formData.append('tanggal_mulai', cartItem.querySelector('input[type="date"]:nth-of-type(1)').value);
+                // Validate that end date is after start date
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(value);
+
+                if (endDate <= startDate) {
+                    alert('Tanggal selesai harus setelah tanggal mulai!');
+                    // Reset to previous value
+                    window.location.reload();
+                    return;
+                }
+
+                formData.append('quantity', quantityInput.value);
+                formData.append('tanggal_mulai', startDateInput.value);
                 formData.append('tanggal_selesai', value);
             }
 
-            fetch(`{{ route('user.cart.index') }}/${cartId}`, {
+            // Add empty notes
+            formData.append('notes', '');
+
+            console.log('Form data:', {
+                quantity: formData.get('quantity'),
+                tanggal_mulai: formData.get('tanggal_mulai'),
+                tanggal_selesai: formData.get('tanggal_selesai'),
+                notes: formData.get('notes')
+            });
+
+            fetch(`/user/cart/${cartId}`, {
                 method: 'PUT',
                 body: formData,
                 headers: {
@@ -401,7 +430,7 @@
                 return;
             }
 
-            fetch(`{{ route('user.cart.index') }}/${cartId}`, {
+            fetch(`/user/cart/${cartId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',

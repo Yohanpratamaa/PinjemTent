@@ -151,8 +151,20 @@ class CartController extends Controller
      */
     public function update(Request $request, Cart $cart): JsonResponse
     {
+        // Log incoming request
+        Log::info('Cart update request received', [
+            'cart_id' => $cart->id,
+            'user_id' => Auth::id(),
+            'request_data' => $request->all()
+        ]);
+
         // Check ownership
         if ($cart->user_id !== Auth::id()) {
+            Log::warning('Unauthorized cart update attempt', [
+                'cart_id' => $cart->id,
+                'cart_user_id' => $cart->user_id,
+                'requesting_user_id' => Auth::id()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized'
@@ -166,16 +178,24 @@ class CartController extends Controller
             'notes' => 'nullable|string|max:500'
         ]);
 
+        Log::info('Cart update validation passed', ['validated_data' => $validated]);
+
         try {
-            // Check stock availability
-            if ($validated['quantity'] > $cart->unit->available_stock) {
+            // Check stock availability - allow current quantity
+            $maxAllowedQuantity = $cart->unit->available_stock + $cart->quantity;
+            if ($validated['quantity'] > $maxAllowedQuantity) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Stok tidak mencukupi. Tersedia: {$cart->unit->available_stock} unit."
+                    'message' => "Stok tidak mencukupi. Maksimal: {$maxAllowedQuantity} unit."
                 ], 400);
             }
 
             $cart->update($validated);
+
+            Log::info('Cart item updated successfully', [
+                'cart_id' => $cart->id,
+                'updated_data' => $validated
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -184,6 +204,12 @@ class CartController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Cart update error', [
+                'cart_id' => $cart->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memperbarui item. Silakan coba lagi.'
