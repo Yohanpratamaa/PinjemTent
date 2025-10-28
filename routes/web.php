@@ -70,6 +70,8 @@ Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
     // Tent rental routes
     Route::get('/tents', [UserTentController::class, 'index'])->name('user.tents.index');
     Route::get('/tents/{tent}', [UserTentController::class, 'show'])->name('user.tents.show');
+    Route::get('/tents/{tent}/rent', [UserTentController::class, 'rent'])->name('user.tents.rent');
+    Route::post('/tents/{tent}/rent', [UserTentController::class, 'storeRental'])->name('user.tents.store-rental');
 });
 
 // Legacy dashboard route (redirect based on role)

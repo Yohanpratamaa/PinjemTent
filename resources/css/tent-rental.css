@@ -1,0 +1,56 @@
+/* Custom styles for tent rental feature */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.aspect-square {
+    aspect-ratio: 1 / 1;
+}
+
+.hover\:scale-105:hover {
+    transform: scale(1.05);
+}
+
+/* Card hover effects */
+.tent-card {
+    transition: all 0.3s ease;
+}
+
+.tent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Price styling */
+.price-highlight {
+    background: linear-gradient(135deg, #10b981, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Status badges */
+.badge-available {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+}
+
+.badge-limited {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+}
+
+.badge-unavailable {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+}
+
+/* Filter section */
+.filter-section {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.dark .filter-section {
+    background: rgba(0, 0, 0, 0.95);
+}

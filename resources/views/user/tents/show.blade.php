@@ -138,12 +138,12 @@
                 <!-- Rental Action -->
                 <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6">
                     @if($tent->available_stock > 0)
-                        <button
-                            class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-                            onclick="alert('Fitur peminjaman akan segera hadir!')"
+                        <a
+                            href="{{ route('user.tents.rent', $tent) }}"
+                            class="w-full block text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
                         >
                             Sewa Sekarang
-                        </button>
+                        </a>
                         <p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
                             Proses peminjaman mudah dan aman
                         </p>
