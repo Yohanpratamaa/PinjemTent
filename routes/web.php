@@ -166,6 +166,23 @@ Route::get('/dashboard', function () {
     return redirect('/');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Debug route - remove after testing
+Route::get('/debug-auth', function () {
+    if (!Auth::check()) {
+        return response()->json(['status' => 'not_logged_in']);
+    }
+
+    $user = Auth::user();
+    return response()->json([
+        'status' => 'logged_in',
+        'user_id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        'role' => $user->role,
+        'is_admin' => $user->role === 'admin',
+    ]);
+})->middleware('web');
+
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 

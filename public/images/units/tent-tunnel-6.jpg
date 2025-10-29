@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-  <rect width="400" height="300" fill="#dc2626"/>
-  <text x="200" y="150" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle" dy="0.3em">
-    tent-tunnel-6
-  </text>
-  <rect x="50" y="50" width="300" height="200" fill="none" stroke="white" stroke-width="2" stroke-dasharray="5,5"/>
-</svg>
