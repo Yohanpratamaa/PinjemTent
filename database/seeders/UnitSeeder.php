@@ -360,45 +360,50 @@ class UnitSeeder extends Seeder
     private function attachKategorisToUnits(): void
     {
         $units = Unit::all();
-        $kategoris = Kategori::all()->keyBy('nama');
+        $kategoris = Kategori::all()->keyBy('nama_kategori');
 
         foreach ($units as $unit) {
             $unitName = strtolower($unit->nama_unit);
             $attachKategoris = [];
 
-            // Determine categories based on unit name
-            if (str_contains($unitName, 'tenda')) {
+            // Determine categories based on unit name and kode_unit
+            if (str_contains($unitName, 'tenda') || str_contains($unit->kode_unit, 'TND')) {
                 $attachKategoris[] = $kategoris->get('Tenda Camping')?->id;
             }
-            if (str_contains($unitName, 'sleeping') || str_contains($unitName, 'bag')) {
+            if (str_contains($unitName, 'sleeping') || str_contains($unitName, 'bag') || str_contains($unit->kode_unit, 'SLP')) {
                 $attachKategoris[] = $kategoris->get('Sleeping Bag')?->id;
             }
-            if (str_contains($unitName, 'kompor') || str_contains($unitName, 'cookset') || str_contains($unitName, 'jetboil')) {
+            if (str_contains($unitName, 'kompor') || str_contains($unitName, 'cookset') || str_contains($unitName, 'jetboil') || str_contains($unit->kode_unit, 'MSK')) {
                 $attachKategoris[] = $kategoris->get('Alat Masak')?->id;
             }
-            if (str_contains($unitName, 'tas') || str_contains($unitName, 'carrier')) {
+            if (str_contains($unitName, 'tas') || str_contains($unitName, 'carrier') || str_contains($unit->kode_unit, 'CAR')) {
                 $attachKategoris[] = $kategoris->get('Tas Carrier')?->id;
             }
-            if (str_contains($unitName, 'headlamp') || str_contains($unitName, 'lantern')) {
+            if (str_contains($unitName, 'headlamp') || str_contains($unitName, 'lantern') || str_contains($unit->kode_unit, 'LGT')) {
                 $attachKategoris[] = $kategoris->get('Peralatan Pencahayaan')?->id;
             }
-            if (str_contains($unitName, 'kompas') || str_contains($unitName, 'gps')) {
+            if (str_contains($unitName, 'kompas') || str_contains($unitName, 'gps') || str_contains($unit->kode_unit, 'NAV')) {
                 $attachKategoris[] = $kategoris->get('Alat Navigasi')?->id;
             }
-            if (str_contains($unitName, 'matras') || str_contains($unitName, 'bantal')) {
+            if (str_contains($unitName, 'matras') || str_contains($unitName, 'bantal') || str_contains($unit->kode_unit, 'BED')) {
                 $attachKategoris[] = $kategoris->get('Perlengkapan Tidur')?->id;
             }
-            if (str_contains($unitName, 'trekking') || str_contains($unitName, 'pole')) {
+            if (str_contains($unitName, 'trekking') || str_contains($unitName, 'pole') || str_contains($unit->kode_unit, 'HIK')) {
                 $attachKategoris[] = $kategoris->get('Alat Hiking')?->id;
             }
-            if (str_contains($unitName, 'water') || str_contains($unitName, 'hydration')) {
+            if (str_contains($unitName, 'water') || str_contains($unitName, 'hydration') || str_contains($unitName, 'filter') || str_contains($unit->kode_unit, 'WTR')) {
                 $attachKategoris[] = $kategoris->get('Peralatan Air')?->id;
             }
 
             // Filter out null values and attach
             $attachKategoris = array_filter($attachKategoris);
             if (!empty($attachKategoris)) {
+                // Detach existing categories first to avoid duplicates
+                $unit->kategoris()->detach();
                 $unit->kategoris()->attach($attachKategoris);
+
+                // Log the attachment for debugging
+                echo "Unit '{$unit->nama_unit}' attached to " . count($attachKategoris) . " categories\n";
             }
         }
     }
