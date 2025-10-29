@@ -302,7 +302,7 @@
 
                 <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <flux:button type="button" variant="primary" onclick="confirmUpdate()">
+                    <flux:button type="submit" variant="primary" onclick="return validateForm()">
                         <div class="flex items-center gap-2">
                             <flux:icon.check class="size-4" />
                             <span>Update Unit</span>
@@ -319,15 +319,22 @@
 
             <!-- Separate Delete Form - OUTSIDE of Update Form -->
             <div class="flex justify-end mt-4">
-                <flux:button type="button" variant="danger" onclick="confirmDelete()">
-                    <div class="flex items-center gap-2">
-                        <flux:icon.trash class="size-4" />
-                        <span>Delete Unit</span>
-                    </div>
-                </flux:button>
-                <form id="delete-form" method="POST" action="{{ route('admin.units.destroy', $unit) }}" class="hidden">
+                <form
+                    method="POST"
+                    action="{{ route('admin.units.destroy', $unit) }}"
+                    class="inline"
+                    data-unit-id="{{ $unit->id }}"
+                    data-unit-name="{{ $unit->nama_unit }}"
+                    onsubmit="return debugDeleteUnit('{{ $unit->id }}', '{{ addslashes($unit->nama_unit) }}')"
+                >
                     @csrf
                     @method('DELETE')
+                    <flux:button type="submit" variant="danger">
+                        <div class="flex items-center gap-2">
+                            <flux:icon.trash class="size-4" />
+                            <span>Delete Unit</span>
+                        </div>
+                    </flux:button>
                 </form>
             </div>
         </div>
@@ -377,178 +384,53 @@
                 </div>
             </div>
         </div>
-        </div>
     </div>
 
-    @push('scripts')
     <script>
-        function confirmUpdate() {
-            // Validate form first
-            if (!validateForm()) {
-                return;
+        // Separate function for update form debugging
+        function debugUnitUpdateForm(formElement) {
+            const formData = new FormData(formElement);
+            console.log('🔄 UNIT UPDATE Form Debug ===');
+            console.log('IMPORTANT: This is UPDATE operation, NOT DELETE');
+            console.log('Form Action:', formElement.action);
+            console.log('Form Method:', formElement.method);
+
+            // Critical validation - ensure this is update form
+            if (formElement.action.includes('destroy')) {
+                console.error('🚨 CRITICAL ERROR: Update form has DELETE action!');
+                alert('ERROR: Form configuration error detected! This form is trying to DELETE instead of UPDATE. Please contact administrator.');
+                return false; // Prevent submission
             }
 
-            // Get form data for preview
-            const unitCode = document.querySelector('input[name="kode_unit"]').value;
-            const unitName = document.querySelector('input[name="nama_unit"]').value;
-            const price = document.querySelector('input[name="harga_sewa_per_hari"]').value;
-            const stock = document.querySelector('input[name="stok"]').value;
-            const status = document.querySelector('select[name="status"]').value;
+            // Check for proper method override
+            const methodInput = formElement.querySelector('input[name="_method"]');
+            if (methodInput && methodInput.value === 'PUT') {
+                console.log('✅ Correct method override found: PUT');
+            } else {
+                console.warn('⚠️ Method override issue detected');
+            }
 
-            Swal.fire({
-                title: 'Update Unit?',
-                html: `
-                    <div class="text-left">
-                        <p class="text-gray-600 mb-3">You are about to update the unit with the following details:</p>
-                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-2">
-                            <div class="flex justify-between">
-                                <span class="font-medium text-gray-700 dark:text-gray-300">Unit Code:</span>
-                                <span class="text-gray-900 dark:text-white">${unitCode}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="font-medium text-gray-700 dark:text-gray-300">Unit Name:</span>
-                                <span class="text-gray-900 dark:text-white">${unitName}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="font-medium text-gray-700 dark:text-gray-300">Status:</span>
-                                <span class="text-blue-600 dark:text-blue-400">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
-                            </div>
-                            ${price ? `
-                                <div class="flex justify-between">
-                                    <span class="font-medium text-gray-700 dark:text-gray-300">Rental Price:</span>
-                                    <span class="text-green-600 dark:text-green-400">Rp ${parseInt(price).toLocaleString('id-ID')}/day</span>
-                                </div>
-                            ` : ''}
-                            <div class="flex justify-between">
-                                <span class="font-medium text-gray-700 dark:text-gray-300">Stock:</span>
-                                <span class="text-blue-600 dark:text-blue-400">${stock} units</span>
-                            </div>
-                        </div>
-                        <p class="text-blue-600 dark:text-blue-400 text-sm mt-3">
-                            <strong>Note:</strong> Changes will be saved and logged for audit purposes.
-                        </p>
-                    </div>
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3B82F6',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Update Unit',
-                cancelButtonText: 'Review Again',
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-gray-900',
-                    content: 'text-gray-600',
-                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
-                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'Updating Unit...',
-                        text: 'Please wait while we save the changes',
-                        icon: 'info',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        allowEnterKey: false,
-                        showConfirmButton: false,
-                        customClass: {
-                            popup: 'border-0 shadow-2xl',
-                            title: 'text-lg font-semibold text-gray-900',
-                            content: 'text-gray-600'
-                        }
-                    });
-
-                    // Submit the form
-                    document.querySelector('form').submit();
-                }
-            });
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}" (${typeof value})`);
+            }
+            console.log('=== End Update Debug ===');
+            return true; // Allow form submission
         }
 
-        function confirmDelete() {
-            const unitName = '{{ $unit->nama_unit }}';
-            const unitCode = '{{ $unit->kode_unit }}';
-            const activeRentals = {{ $unit->peminjamans()->where('status', 'dipinjam')->count() }};
-
-            if (activeRentals > 0) {
-                Swal.fire({
-                    title: 'Cannot Delete Unit',
-                    html: `
-                        <div class="text-left">
-                            <p class="text-gray-600 mb-2">The unit "<strong>${unitName}</strong>" cannot be deleted because:</p>
-                            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">
-                                <p class="text-red-800 dark:text-red-200">
-                                    It currently has <strong>${activeRentals} active rental(s)</strong>.
-                                </p>
-                            </div>
-                            <p class="text-blue-600 dark:text-blue-400 text-sm mt-3">
-                                <strong>Suggestion:</strong> Wait for all rentals to be returned, then try deleting again.
-                            </p>
-                        </div>
-                    `,
-                    icon: 'error',
-                    confirmButtonColor: '#EF4444',
-                    confirmButtonText: 'Understood',
-                    customClass: {
-                        popup: 'border-0 shadow-2xl',
-                        title: 'text-lg font-semibold text-gray-900',
-                        content: 'text-gray-600',
-                        confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                    }
-                });
-                return;
+        function debugFormData(event) {
+            const formData = new FormData(event.target);
+            console.log('=== Form Data Debug ===');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}" (${typeof value})`);
             }
+            console.log('=== End Debug ===');
 
-            Swal.fire({
-                title: 'Delete Unit?',
-                html: `
-                    <div class="text-left">
-                        <p class="text-gray-600 mb-2">You are about to delete:</p>
-                        <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                            <p class="font-semibold text-gray-900 dark:text-white">${unitName}</p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Code: ${unitCode}</p>
-                        </div>
-                        <p class="text-red-600 dark:text-red-400 text-sm mt-3">
-                            <strong>Warning:</strong> This action cannot be undone. All rental history for this unit will remain, but the unit will be permanently removed from inventory.
-                        </p>
-                    </div>
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#EF4444',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Delete Unit',
-                cancelButtonText: 'Cancel',
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-gray-900',
-                    content: 'text-gray-600',
-                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
-                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'Deleting Unit...',
-                        text: 'Please wait while we remove the unit from inventory',
-                        icon: 'info',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        allowEnterKey: false,
-                        showConfirmButton: false,
-                        customClass: {
-                            popup: 'border-0 shadow-2xl',
-                            title: 'text-lg font-semibold text-gray-900',
-                            content: 'text-gray-600'
-                        }
-                    });
-
-                    // Submit the delete form
-                    document.getElementById('delete-form').submit();
-                }
-            });
+            // Pastikan stok tidak kosong sebelum submit
+            const stokInput = document.querySelector('input[name="stok"]');
+            if (!stokInput.value || stokInput.value.trim() === '') {
+                console.warn('Empty stock detected, setting to current value:', {{ $unit->stok }});
+                stokInput.value = {{ $unit->stok }};
+            }
         }
 
         function validateForm() {
@@ -557,6 +439,7 @@
 
             // Jika kosong, set ke nilai saat ini
             if (!stokValue || stokValue === '') {
+                console.warn('Empty stock input detected, using current stock value');
                 stokInput.value = {{ $unit->stok }};
                 stokValue = {{ $unit->stok }};
             }
@@ -566,65 +449,21 @@
 
             // Validasi stok tidak negatif (boleh 0)
             if (isNaN(stokInt) || stokInt < 0) {
-                Swal.fire({
-                    title: 'Invalid Stock',
-                    text: 'Stock quantity must be a number and cannot be negative!',
-                    icon: 'error',
-                    confirmButtonColor: '#EF4444',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        popup: 'border-0 shadow-2xl',
-                        title: 'text-lg font-semibold text-red-800',
-                        content: 'text-red-600',
-                        confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                    }
-                });
+                alert('Stock quantity harus berupa angka dan tidak boleh negatif!');
                 stokInput.focus();
                 return false;
             }
 
             // Validasi stok tidak kurang dari yang sedang dipinjam
             if (minActiveRentals > 0 && stokInt < minActiveRentals) {
-                Swal.fire({
-                    title: 'Stock Too Low',
-                    text: `Stock cannot be less than ${minActiveRentals} because there are units currently being rented!`,
-                    icon: 'warning',
-                    confirmButtonColor: '#F59E0B',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        popup: 'border-0 shadow-2xl',
-                        title: 'text-lg font-semibold text-yellow-800',
-                        content: 'text-yellow-600',
-                        confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                    }
-                });
+                alert(`Stock tidak boleh kurang dari ${minActiveRentals} karena masih ada unit yang dipinjam!`);
                 stokInput.focus();
                 return false;
             }
 
             // Validasi stock terlalu besar
             if (stokInt > 1000) {
-                return new Promise((resolve) => {
-                    Swal.fire({
-                        title: 'Large Stock Quantity',
-                        text: `The stock quantity you entered (${stokInt}) is quite large. Are you sure this is correct?`,
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3B82F6',
-                        cancelButtonColor: '#6B7280',
-                        confirmButtonText: 'Yes, Correct',
-                        cancelButtonText: 'Let me check',
-                        customClass: {
-                            popup: 'border-0 shadow-2xl',
-                            title: 'text-lg font-semibold text-gray-900',
-                            content: 'text-gray-600',
-                            confirmButton: 'font-medium px-4 py-2 rounded-lg',
-                            cancelButton: 'font-medium px-4 py-2 rounded-lg'
-                        }
-                    }).then((result) => {
-                        resolve(result.isConfirmed);
-                    });
-                });
+                return confirm('Stock yang dimasukkan cukup besar (' + stokInt + '). Apakah Anda yakin?');
             }
 
             return true;
@@ -641,21 +480,25 @@
                 stokInput.value = currentStock;
             }
 
+            // Remove oninput restriction untuk lebih fleksibel
+            stokInput.removeAttribute('oninput');
+
             stokInput.addEventListener('input', function() {
                 let value = this.value.trim();
 
                 // Allow temporary empty for editing
                 if (value === '') {
-                    return;
+                    return; // Allow empty during editing
                 }
 
                 let intValue = parseInt(value);
 
-                // Visual feedback
+                // Pastikan tidak negatif
                 if (intValue < 0 || isNaN(intValue)) {
                     this.style.borderColor = '#ef4444';
                     this.style.boxShadow = '0 0 0 1px #ef4444';
                 } else if (minActiveRentals > 0 && intValue < minActiveRentals) {
+                    // Warning jika kurang dari rental aktif
                     this.style.borderColor = '#f59e0b';
                     this.style.boxShadow = '0 0 0 1px #f59e0b';
                 } else {
@@ -672,63 +515,8 @@
                 }
             });
         });
-
-        // Show alerts for session flash messages
-        @if(session('success'))
-            Swal.fire({
-                title: 'Success!',
-                text: '{{ session('success') }}',
-                icon: 'success',
-                timer: 3000,
-                showConfirmButton: false,
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-green-800',
-                    content: 'text-green-600'
-                }
-            });
-        @endif
-
-        @if(session('error'))
-            Swal.fire({
-                title: 'Error!',
-                text: '{{ session('error') }}',
-                icon: 'error',
-                confirmButtonColor: '#EF4444',
-                confirmButtonText: 'OK',
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-red-800',
-                    content: 'text-red-600',
-                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                }
-            });
-        @endif
-
-        @if($errors->any())
-            Swal.fire({
-                title: 'Validation Error!',
-                html: `
-                    <div class="text-left">
-                        <p class="text-gray-600 mb-3">Please fix the following errors:</p>
-                        <ul class="list-disc list-inside text-red-600 dark:text-red-400 space-y-1">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                `,
-                icon: 'error',
-                confirmButtonColor: '#EF4444',
-                confirmButtonText: 'Fix Errors',
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-red-800',
-                    content: 'text-red-600',
-                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                }
-            });
-        @endif
     </script>
-    @endpush
+
+    <!-- Debug Script -->
+    <script src="{{ asset('js/unit-debug.js') }}"></script>
 </x-layouts.admin>

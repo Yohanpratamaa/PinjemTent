@@ -101,9 +101,8 @@
                 @endif
 
                 <!-- Form Actions -->
-                                <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <flux:button type="button" variant="primary" onclick="confirmUpdate()">
+                    <flux:button type="submit" variant="primary">
                         <div class="flex items-center gap-2">
                             <flux:icon.check class="size-4" />
                             <span>Update Category</span>
@@ -116,33 +115,6 @@
                         </div>
                     </flux:button>
                 </div>
-            </form>
-
-            <!-- Delete Section (only if no units) -->
-            @if($kategori->units->count() === 0)
-                <div class="flex justify-end mt-4">
-                    <flux:button type="button" variant="danger" onclick="confirmDelete()">
-                        <div class="flex items-center gap-2">
-                            <flux:icon.trash class="size-4" />
-                            <span>Delete Category</span>
-                        </div>
-                    </flux:button>
-                    <form id="delete-form" method="POST" action="{{ route('admin.kategoris.destroy', $kategori) }}" class="hidden">
-                        @csrf
-                        @method('DELETE')
-                    </form>
-                </div>
-            @else
-                <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <flux:icon.exclamation-triangle class="size-5 text-yellow-600 dark:text-yellow-400" />
-                        <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                            This category cannot be deleted because it has {{ $kategori->units->count() }} unit(s) assigned to it.
-                            Remove or reassign all units first before deleting this category.
-                        </p>
-                    </div>
-                </div>
-            @endif
             </form>
 
             <!-- Separate Delete Form - OUTSIDE of Update Form -->
@@ -189,232 +161,77 @@
                 </div>
             </div>
         </div>
-        </div>
     </div>
 
-    @push('scripts')
     <script>
-        function confirmUpdate() {
-            // Get form data for preview
-            const categoryName = document.querySelector('input[name="nama_kategori"]').value;
-            const description = document.querySelector('textarea[name="deskripsi"]').value;
+        // Debug function for category update form
+        function debugKategoriUpdateForm(formElement) {
+            const formData = new FormData(formElement);
+            console.log('🔄 KATEGORI UPDATE Form Debug ===');
+            console.log('IMPORTANT: This is UPDATE operation, NOT DELETE');
+            console.log('Form Action:', formElement.action);
+            console.log('Form Method:', formElement.method);
 
-            // Basic validation
-            if (!categoryName || categoryName.trim() === '') {
-                Swal.fire({
-                    title: 'Missing Information',
-                    text: 'Please enter a category name before updating.',
-                    icon: 'warning',
-                    confirmButtonColor: '#F59E0B',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        popup: 'border-0 shadow-2xl',
-                        title: 'text-lg font-semibold text-gray-900',
-                        content: 'text-gray-600',
-                        confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                    }
-                });
-                return;
+            // Critical validation - ensure this is update form
+            if (formElement.action.includes('destroy')) {
+                console.error('🚨 CRITICAL ERROR: Update form has DELETE action!');
+                alert('ERROR: Form configuration error detected! This form is trying to DELETE instead of UPDATE. Please contact administrator.');
+                return false; // Prevent submission
             }
 
-            Swal.fire({
-                title: 'Update Category?',
-                html: `
-                    <div class="text-left">
-                        <p class="text-gray-600 mb-3">You are about to update the category with the following details:</p>
-                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-2">
-                            <div class="flex justify-between">
-                                <span class="font-medium text-gray-700 dark:text-gray-300">Category Name:</span>
-                                <span class="text-gray-900 dark:text-white">${categoryName}</span>
-                            </div>
-                            ${description ? `
-                                <div class="mt-2">
-                                    <span class="font-medium text-gray-700 dark:text-gray-300">Description:</span>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 bg-white dark:bg-gray-800 p-2 rounded">${description}</p>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <p class="text-blue-600 dark:text-blue-400 text-sm mt-3">
-                            <strong>Note:</strong> Changes will be saved and applied to all units in this category.
-                        </p>
-                    </div>
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3B82F6',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Update Category',
-                cancelButtonText: 'Review Again',
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-gray-900',
-                    content: 'text-gray-600',
-                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
-                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'Updating Category...',
-                        text: 'Please wait while we save the changes',
-                        icon: 'info',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        allowEnterKey: false,
-                        showConfirmButton: false,
-                        customClass: {
-                            popup: 'border-0 shadow-2xl',
-                            title: 'text-lg font-semibold text-gray-900',
-                            content: 'text-gray-600'
-                        }
-                    });
-
-                    // Submit the form
-                    document.querySelector('form').submit();
-                }
-            });
-        }
-
-        function confirmDelete() {
-            const categoryName = '{{ $kategori->nama_kategori }}';
-            const unitCount = {{ $kategori->units->count() }};
-
-            if (unitCount > 0) {
-                Swal.fire({
-                    title: 'Cannot Delete Category',
-                    html: `
-                        <div class="text-left">
-                            <p class="text-gray-600 mb-2">The category "<strong>${categoryName}</strong>" cannot be deleted because:</p>
-                            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">
-                                <p class="text-red-800 dark:text-red-200">
-                                    It currently has <strong>${unitCount} unit(s)</strong> assigned to it.
-                                </p>
-                            </div>
-                            <p class="text-blue-600 dark:text-blue-400 text-sm mt-3">
-                                <strong>Suggestion:</strong> First remove or reassign all units from this category, then try deleting again.
-                            </p>
-                        </div>
-                    `,
-                    icon: 'error',
-                    confirmButtonColor: '#EF4444',
-                    confirmButtonText: 'Understood',
-                    customClass: {
-                        popup: 'border-0 shadow-2xl',
-                        title: 'text-lg font-semibold text-gray-900',
-                        content: 'text-gray-600',
-                        confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                    }
-                });
-                return;
+            // Check for proper method override
+            const methodInput = formElement.querySelector('input[name="_method"]');
+            if (methodInput && methodInput.value === 'PUT') {
+                console.log('✅ Correct method override found: PUT');
+            } else {
+                console.warn('⚠️ Method override issue detected');
             }
 
-            Swal.fire({
-                title: 'Delete Category?',
-                html: `
-                    <div class="text-left">
-                        <p class="text-gray-600 mb-2">You are about to delete the category:</p>
-                        <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                            <p class="font-semibold text-gray-900 dark:text-white">${categoryName}</p>
-                        </div>
-                        <p class="text-red-600 dark:text-red-400 text-sm mt-3">
-                            <strong>Warning:</strong> This action cannot be undone. The category will be permanently removed from the system.
-                        </p>
-                    </div>
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#EF4444',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Delete Category',
-                cancelButtonText: 'Cancel',
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-gray-900',
-                    content: 'text-gray-600',
-                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
-                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'Deleting Category...',
-                        text: 'Please wait while we remove the category',
-                        icon: 'info',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        allowEnterKey: false,
-                        showConfirmButton: false,
-                        customClass: {
-                            popup: 'border-0 shadow-2xl',
-                            title: 'text-lg font-semibold text-gray-900',
-                            content: 'text-gray-600'
-                        }
-                    });
-
-                    // Submit the delete form
-                    document.getElementById('delete-form').submit();
-                }
-            });
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}" (${typeof value})`);
+            }
+            console.log('=== End Kategori Update Debug ===');
+            return true; // Allow form submission
         }
 
-        // Show alerts for session flash messages
-        @if(session('success'))
-            Swal.fire({
-                title: 'Success!',
-                text: '{{ session('success') }}',
-                icon: 'success',
-                timer: 3000,
-                showConfirmButton: false,
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-green-800',
-                    content: 'text-green-600'
-                }
-            });
-        @endif
+        // Debug function for category delete
+        function debugDeleteKategori(kategoriId, kategoriName) {
+            console.group("🗑️ Delete Kategori Debug");
+            console.log("IMPORTANT: This is a DELETE operation, not UPDATE");
+            console.log("Kategori ID:", kategoriId);
+            console.log("Kategori Name:", kategoriName);
+            console.log("Timestamp:", new Date().toISOString());
+            console.log("Action: DELETE KATEGORI (Permanent)");
 
-        @if(session('error'))
-            Swal.fire({
-                title: 'Error!',
-                text: '{{ session('error') }}',
-                icon: 'error',
-                confirmButtonColor: '#EF4444',
-                confirmButtonText: 'OK',
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-red-800',
-                    content: 'text-red-600',
-                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                }
-            });
-        @endif
+            const confirmed = confirm(
+                `⚠️ DELETE CONFIRMATION ⚠️\n\nAre you sure you want to PERMANENTLY DELETE category "${kategoriName}"?\n\nThis action CANNOT be undone!\n\nClick OK to DELETE or Cancel to abort.`
+            );
+            console.log("User Confirmed Delete:", confirmed);
+            console.groupEnd();
 
-        @if($errors->any())
-            Swal.fire({
-                title: 'Validation Error!',
-                html: `
-                    <div class="text-left">
-                        <p class="text-gray-600 mb-3">Please fix the following errors:</p>
-                        <ul class="list-disc list-inside text-red-600 dark:text-red-400 space-y-1">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                `,
-                icon: 'error',
-                confirmButtonColor: '#EF4444',
-                confirmButtonText: 'Fix Errors',
-                customClass: {
-                    popup: 'border-0 shadow-2xl',
-                    title: 'text-lg font-semibold text-red-800',
-                    content: 'text-red-600',
-                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
-                }
-            });
-        @endif
+            if (confirmed) {
+                console.warn("🗑️ DELETE CONFIRMED - Kategori will be deleted!");
+            } else {
+                console.log("✅ DELETE CANCELLED - Kategori will not be deleted");
+            }
+
+            return confirmed;
+        }
+
+        // Add form event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const updateForm = document.querySelector('form[action*="kategoris"][method="POST"]:not([action*="destroy"])');
+            if (updateForm) {
+                updateForm.addEventListener('submit', function(e) {
+                    if (!debugKategoriUpdateForm(this)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            }
+        });
     </script>
-    @endpush
+
+    <!-- Debug Script -->
+    <script src="{{ asset('js/kategori-debug.js') }}"></script>
 </x-layouts.admin>

@@ -163,18 +163,12 @@ class Unit extends Model
      */
     public function getFotoUrlAttribute(): string
     {
-        // Check if it's a URL (starts with http)
-        if ($this->foto && (str_starts_with($this->foto, 'http://') || str_starts_with($this->foto, 'https://'))) {
-            return $this->foto;
-        }
-
-        // Check local file if not URL
         if ($this->foto && file_exists(public_path('images/units/' . $this->foto))) {
             return asset('images/units/' . $this->foto);
         }
 
-        // Default placeholder from CDN
-        return $this->getDefaultPhotoUrl();
+        // Use SVG placeholder in units folder to avoid HTTP request loops
+        return asset('images/units/placeholder.svg');
     }
 
     /**
@@ -182,46 +176,6 @@ class Unit extends Model
      */
     public function getHasFotoAttribute(): bool
     {
-        // Check if it's a URL
-        if (!empty($this->foto) && (str_starts_with($this->foto, 'http://') || str_starts_with($this->foto, 'https://'))) {
-            return true;
-        }
-
-        // Check local file
         return !empty($this->foto) && file_exists(public_path('images/units/' . $this->foto));
-    }
-
-    /**
-     * Get default photo URL based on unit category or type
-     */
-    public function getDefaultPhotoUrl(): string
-    {
-        $unitName = strtolower($this->nama_unit);
-
-        // Default camping equipment images from Unsplash/CDN
-        if (str_contains($unitName, 'tenda')) {
-            return 'https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'sleeping') || str_contains($unitName, 'bag')) {
-            return 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'kompor') || str_contains($unitName, 'stove')) {
-            return 'https://images.unsplash.com/photo-1563299796-17596ed6b017?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'tas') || str_contains($unitName, 'carrier') || str_contains($unitName, 'backpack')) {
-            return 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'headlamp') || str_contains($unitName, 'lantern') || str_contains($unitName, 'light')) {
-            return 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'cookset') || str_contains($unitName, 'alat masak')) {
-            return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'compass') || str_contains($unitName, 'gps')) {
-            return 'https://images.unsplash.com/photo-1566471539559-eafe1badc42b?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'water') || str_contains($unitName, 'filter')) {
-            return 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'trekking') || str_contains($unitName, 'pole')) {
-            return 'https://images.unsplash.com/photo-1551524164-bcea769a30ce?w=300&h=200&fit=crop';
-        } elseif (str_contains($unitName, 'mattress') || str_contains($unitName, 'pillow')) {
-            return 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=300&h=200&fit=crop';
-        } else {
-            // Generic camping equipment
-            return 'https://images.unsplash.com/photo-1487730116645-74489c95b41b?w=300&h=200&fit=crop';
-        }
     }
 }
