@@ -32,6 +32,10 @@ class Peminjaman extends Model
         'tanggal_kembali_rencana',
         'tanggal_kembali_aktual',
         'status',
+        'rental_status',
+        'rental_approved_at',
+        'rental_approved_by',
+        'rental_rejection_reason',
         'return_status',
         'return_requested_at',
         'return_message',
@@ -49,6 +53,7 @@ class Peminjaman extends Model
         'tanggal_pinjam' => 'date',
         'tanggal_kembali_rencana' => 'date',
         'tanggal_kembali_aktual' => 'date',
+        'rental_approved_at' => 'datetime',
         'return_requested_at' => 'datetime',
         'approved_return_at' => 'datetime',
         'harga_sewa_total' => 'decimal:2',
@@ -78,6 +83,14 @@ class Peminjaman extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Relasi dengan admin yang menyetujui rental
+     */
+    public function rentalApprovedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rental_approved_by');
     }
 
     /**
@@ -269,5 +282,101 @@ class Peminjaman extends Model
     public function getFormattedTotalBayar(): string
     {
         return 'Rp ' . number_format($this->total_bayar ?? $this->calculateTotalBayar(), 0, ',', '.');
+    }
+
+    /**
+     * Method untuk approve rental oleh admin
+     */
+    public function approveRental($adminId): bool
+    {
+        if ($this->rental_status !== 'pending') {
+            return false;
+        }
+
+        $this->update([
+            'rental_status' => 'approved',
+            'rental_approved_at' => now(),
+            'rental_approved_by' => $adminId,
+            'status' => 'dipinjam' // Update status utama menjadi dipinjam
+        ]);
+
+        // Create notification for user
+        Notification::createRentalApproved($this);
+
+        return true;
+    }
+
+    /**
+     * Method untuk reject rental oleh admin
+     */
+    public function rejectRental($adminId, $reason = null): bool
+    {
+        if ($this->rental_status !== 'pending') {
+            return false;
+        }
+
+        $this->update([
+            'rental_status' => 'rejected',
+            'rental_approved_at' => now(),
+            'rental_approved_by' => $adminId,
+            'rental_rejection_reason' => $reason,
+            'status' => 'dibatalkan' // Update status utama menjadi dibatalkan
+        ]);
+
+        // Return stock to unit karena rental ditolak
+        $this->unit->increment('stok', $this->jumlah);
+
+        // Create notification for user
+        Notification::createRentalRejected($this, $reason);
+
+        return true;
+    }
+
+    /**
+     * Scope untuk rental yang menunggu approval
+     */
+    public function scopePendingRental($query)
+    {
+        return $query->where('rental_status', 'pending');
+    }
+
+    /**
+     * Scope untuk rental yang sudah diapprove
+     */
+    public function scopeApprovedRental($query)
+    {
+        return $query->where('rental_status', 'approved');
+    }
+
+    /**
+     * Scope untuk rental yang ditolak
+     */
+    public function scopeRejectedRental($query)
+    {
+        return $query->where('rental_status', 'rejected');
+    }
+
+    /**
+     * Accessor untuk mengecek apakah rental masih pending
+     */
+    public function getIsPendingRentalAttribute(): bool
+    {
+        return $this->rental_status === 'pending';
+    }
+
+    /**
+     * Accessor untuk mengecek apakah rental sudah diapprove
+     */
+    public function getIsApprovedRentalAttribute(): bool
+    {
+        return $this->rental_status === 'approved';
+    }
+
+    /**
+     * Accessor untuk mengecek apakah rental ditolak
+     */
+    public function getIsRejectedRentalAttribute(): bool
+    {
+        return $this->rental_status === 'rejected';
     }
 }

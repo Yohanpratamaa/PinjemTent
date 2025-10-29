@@ -63,6 +63,11 @@ class Notification extends Model
         return $query->where('type', 'return_request');
     }
 
+    public function scopeRentalRequests($query)
+    {
+        return $query->where('type', 'rental_request');
+    }
+
     /**
      * Accessors & Mutators
      */
@@ -118,6 +123,68 @@ class Notification extends Model
             'data' => [
                 'unit_name' => $peminjaman->unit->nama_unit,
                 'returned_at' => now()->format('d/m/Y H:i')
+            ]
+        ]);
+    }
+
+    /**
+     * Create notification for new rental request (for admin)
+     */
+    public static function createRentalRequest($peminjaman)
+    {
+        return static::create([
+            'type' => 'rental_request',
+            'user_id' => $peminjaman->user_id,
+            'peminjaman_id' => $peminjaman->id,
+            'title' => 'Permintaan Penyewaan Baru',
+            'message' => "Pengguna {$peminjaman->user->name} meminta untuk menyewa {$peminjaman->unit->nama_unit}",
+            'is_admin_notification' => true,
+            'data' => [
+                'unit_name' => $peminjaman->unit->nama_unit,
+                'user_name' => $peminjaman->user->name,
+                'rental_period' => $peminjaman->tanggal_pinjam . ' - ' . $peminjaman->tanggal_kembali_rencana,
+                'quantity' => $peminjaman->jumlah,
+                'total_price' => $peminjaman->harga_sewa_total
+            ]
+        ]);
+    }
+
+    /**
+     * Create notification for rental approved (for user)
+     */
+    public static function createRentalApproved($peminjaman)
+    {
+        return static::create([
+            'type' => 'rental_approved',
+            'user_id' => $peminjaman->user_id,
+            'peminjaman_id' => $peminjaman->id,
+            'title' => 'Penyewaan Disetujui',
+            'message' => "Penyewaan {$peminjaman->unit->nama_unit} telah disetujui oleh admin",
+            'is_admin_notification' => false,
+            'data' => [
+                'unit_name' => $peminjaman->unit->nama_unit,
+                'approved_at' => now()->format('d/m/Y H:i'),
+                'rental_period' => $peminjaman->tanggal_pinjam . ' - ' . $peminjaman->tanggal_kembali_rencana
+            ]
+        ]);
+    }
+
+    /**
+     * Create notification for rental rejected (for user)
+     */
+    public static function createRentalRejected($peminjaman, $reason = null)
+    {
+        return static::create([
+            'type' => 'rental_rejected',
+            'user_id' => $peminjaman->user_id,
+            'peminjaman_id' => $peminjaman->id,
+            'title' => 'Penyewaan Ditolak',
+            'message' => "Penyewaan {$peminjaman->unit->nama_unit} ditolak oleh admin" . ($reason ? ": {$reason}" : ''),
+            'is_admin_notification' => false,
+            'data' => [
+                'unit_name' => $peminjaman->unit->nama_unit,
+                'rejected_at' => now()->format('d/m/Y H:i'),
+                'reason' => $reason
             ]
         ]);
     }

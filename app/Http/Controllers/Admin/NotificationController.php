@@ -12,19 +12,29 @@ use Illuminate\Support\Facades\DB;
 class NotificationController extends Controller
 {
     /**
-     * Display a listing of return request notifications.
+     * Display a listing of admin notifications (rental and return requests).
      */
     public function index(Request $request)
     {
         // Get filter parameters
         $filter = $request->get('filter', 'all'); // all, unread, read
+        $type = $request->get('type', 'all'); // all, rental_request, return_request
 
         $query = Notification::with(['user', 'peminjaman.unit'])
                              ->forAdmin()
-                             ->returnRequests()
                              ->orderBy('created_at', 'desc');
 
-        // Apply filters
+        // Apply type filter
+        if ($type === 'rental_request') {
+            $query->where('type', 'rental_request');
+        } elseif ($type === 'return_request') {
+            $query->where('type', 'return_request');
+        } else {
+            // Show both rental and return requests
+            $query->whereIn('type', ['rental_request', 'return_request']);
+        }
+
+        // Apply read status filter
         if ($filter === 'unread') {
             $query->unread();
         } elseif ($filter === 'read') {
@@ -35,13 +45,15 @@ class NotificationController extends Controller
 
         // Get statistics
         $stats = [
-            'total' => Notification::forAdmin()->returnRequests()->count(),
-            'unread' => Notification::forAdmin()->returnRequests()->unread()->count(),
-            'today' => Notification::forAdmin()->returnRequests()
+            'total' => Notification::forAdmin()->whereIn('type', ['rental_request', 'return_request'])->count(),
+            'unread' => Notification::forAdmin()->whereIn('type', ['rental_request', 'return_request'])->unread()->count(),
+            'today' => Notification::forAdmin()->whereIn('type', ['rental_request', 'return_request'])
                                   ->whereDate('created_at', today())->count(),
+            'rental_pending' => Notification::forAdmin()->where('type', 'rental_request')->unread()->count(),
+            'return_pending' => Notification::forAdmin()->where('type', 'return_request')->unread()->count(),
         ];
 
-        return view('admin.notifications.index', compact('notifications', 'stats', 'filter'));
+        return view('admin.notifications.index', compact('notifications', 'stats', 'filter', 'type'));
     }
 
     /**
@@ -152,6 +164,88 @@ class NotificationController extends Controller
             DB::rollBack();
             return redirect()->back()
                            ->with('error', 'Terjadi kesalahan saat menolak pengembalian.');
+        }
+    }
+
+    /**
+     * Approve rental request.
+     */
+    public function approveRental($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $notification = Notification::forAdmin()->findOrFail($id);
+            $peminjaman = $notification->peminjaman;
+
+            if ($peminjaman->rental_status !== 'pending') {
+                return redirect()->back()
+                               ->with('error', 'Permintaan penyewaan tidak valid atau sudah diproses.');
+            }
+
+            // Approve the rental
+            $success = $peminjaman->approveRental(Auth::id());
+
+            if (!$success) {
+                return redirect()->back()
+                               ->with('error', 'Gagal menyetujui penyewaan.');
+            }
+
+            // Mark notification as read
+            $notification->markAsRead();
+
+            DB::commit();
+
+            return redirect()->route('admin.notifications.show', $notification->id)
+                           ->with('success', 'Penyewaan berhasil disetujui. Unit telah disewa.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                           ->with('error', 'Terjadi kesalahan saat menyetujui penyewaan.');
+        }
+    }
+
+    /**
+     * Reject rental request.
+     */
+    public function rejectRental($id, Request $request)
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $notification = Notification::forAdmin()->findOrFail($id);
+            $peminjaman = $notification->peminjaman;
+
+            if ($peminjaman->rental_status !== 'pending') {
+                return redirect()->back()
+                               ->with('error', 'Permintaan penyewaan tidak valid atau sudah diproses.');
+            }
+
+            // Reject the rental
+            $success = $peminjaman->rejectRental(Auth::id(), $request->rejection_reason);
+
+            if (!$success) {
+                return redirect()->back()
+                               ->with('error', 'Gagal menolak penyewaan.');
+            }
+
+            // Mark notification as read
+            $notification->markAsRead();
+
+            DB::commit();
+
+            return redirect()->route('admin.notifications.show', $notification->id)
+                           ->with('success', 'Penyewaan berhasil ditolak.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                           ->with('error', 'Terjadi kesalahan saat menolak penyewaan.');
         }
     }
 

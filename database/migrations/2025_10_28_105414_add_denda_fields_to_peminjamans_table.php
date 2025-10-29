@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('peminjamans', function (Blueprint $table) {
-            $table->decimal('denda', 10, 2)->default(0)->after('harga_sewa_total');
-            $table->integer('hari_terlambat')->default(0)->after('denda');
-            $table->text('keterangan_denda')->nullable()->after('hari_terlambat');
+            if (!Schema::hasColumn('peminjamans', 'denda')) {
+                $table->decimal('denda', 10, 2)->default(0)->after('harga_sewa_total');
+            }
+            if (!Schema::hasColumn('peminjamans', 'hari_terlambat')) {
+                $table->integer('hari_terlambat')->default(0)->after('denda');
+            }
+            if (!Schema::hasColumn('peminjamans', 'keterangan_denda')) {
+                $table->text('keterangan_denda')->nullable()->after('hari_terlambat');
+            }
         });
     }
 

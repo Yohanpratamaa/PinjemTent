@@ -408,12 +408,21 @@ class CartController extends Controller
                     'denda_total' => $penalty,
                     'total_bayar' => $totalBayar,
                     'catatan_peminjam' => $cartItem->notes ?? 'Checkout dari keranjang',
-                    'status' => 'pending' // Pending approval
+                    'status' => 'pending', // Pending approval
+                    'rental_status' => 'pending' // Menunggu approval admin
                 ]);
 
                 Log::info('Peminjaman created successfully', [
                     'peminjaman_id' => $peminjaman->id,
                     'kode_peminjaman' => $peminjaman->kode_peminjaman
+                ]);
+
+                // Create notification for admin about new rental request
+                \App\Models\Notification::createRentalRequest($peminjaman);
+
+                Log::info('Rental notification created for admin', [
+                    'peminjaman_id' => $peminjaman->id,
+                    'user_id' => $peminjaman->user_id
                 ]);
 
                 // Delete cart item after successful conversion

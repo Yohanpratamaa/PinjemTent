@@ -1,4 +1,4 @@
-<x-layouts.admin :title="__('Return Request Detail')">
+<x-layouts.admin :title="__('Notification Detail')">
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <!-- Page Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -13,22 +13,46 @@
                     Back to Notifications
                 </flux:button>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Return Request Detail</h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Review and manage return request</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        @if($notification->type === 'rental_request')
+                            Rental Request Detail
+                        @else
+                            Return Request Detail
+                        @endif
+                    </h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        @if($notification->type === 'rental_request')
+                            Review and approve rental request
+                        @else
+                            Review and manage return request
+                        @endif
+                    </p>
                 </div>
             </div>
 
             <!-- Status Badge -->
             <div>
-                @php
-                    $returnStatus = $notification->peminjaman->return_status;
-                    $statusConfig = [
-                        'requested' => ['color' => 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800', 'text' => 'Pending Review'],
-                        'approved' => ['color' => 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800', 'text' => 'Approved'],
-                        'rejected' => ['color' => 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800', 'text' => 'Rejected']
-                    ];
-                    $config = $statusConfig[$returnStatus] ?? $statusConfig['requested'];
-                @endphp
+                @if($notification->type === 'rental_request')
+                    @php
+                        $rentalStatus = $notification->peminjaman->rental_status;
+                        $statusConfig = [
+                            'pending' => ['color' => 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800', 'text' => 'Pending Approval'],
+                            'approved' => ['color' => 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800', 'text' => 'Approved'],
+                            'rejected' => ['color' => 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800', 'text' => 'Rejected']
+                        ];
+                        $config = $statusConfig[$rentalStatus] ?? $statusConfig['pending'];
+                    @endphp
+                @else
+                    @php
+                        $returnStatus = $notification->peminjaman->return_status;
+                        $statusConfig = [
+                            'requested' => ['color' => 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800', 'text' => 'Pending Review'],
+                            'approved' => ['color' => 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800', 'text' => 'Approved'],
+                            'rejected' => ['color' => 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800', 'text' => 'Rejected']
+                        ];
+                        $config = $statusConfig[$returnStatus] ?? $statusConfig['requested'];
+                    @endphp
+                @endif
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $config['color'] }}">
                     {{ $config['text'] }}
                 </span>
@@ -63,7 +87,7 @@
                             <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                                 {{ $notification->message }}
                             </p>
-                            @if($notification->peminjaman->return_message)
+                            @if($notification->type === 'return_request' && $notification->peminjaman->return_message)
                                 <div class="mt-3">
                                     <h5 class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Additional Message from User:</h5>
                                     <p class="text-sm text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
@@ -75,10 +99,17 @@
 
                         <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
                             <div class="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <span class="font-medium text-gray-600 dark:text-gray-400">Requested At:</span>
-                                    <p class="text-gray-900 dark:text-white">{{ $notification->peminjaman->return_requested_at->format('d F Y, H:i') }}</p>
-                                </div>
+                                @if($notification->type === 'rental_request')
+                                    <div>
+                                        <span class="font-medium text-gray-600 dark:text-gray-400">Requested At:</span>
+                                        <p class="text-gray-900 dark:text-white">{{ $notification->peminjaman->created_at->format('d F Y, H:i') }}</p>
+                                    </div>
+                                @else
+                                    <div>
+                                        <span class="font-medium text-gray-600 dark:text-gray-400">Requested At:</span>
+                                        <p class="text-gray-900 dark:text-white">{{ $notification->peminjaman->return_requested_at->format('d F Y, H:i') }}</p>
+                                    </div>
+                                @endif
                                 <div>
                                     <span class="font-medium text-gray-600 dark:text-gray-400">Notification Created:</span>
                                     <p class="text-gray-900 dark:text-white">{{ $notification->created_at->format('d F Y, H:i') }}</p>
@@ -128,25 +159,62 @@
 
                 <!-- Rental Details -->
                 <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Rental Information</h2>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                        @if($notification->type === 'rental_request')
+                            Rental Request Details
+                        @else
+                            Rental Information
+                        @endif
+                    </h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="font-medium text-zinc-600 dark:text-zinc-400">Rental Period:</span>
-                            <p class="text-zinc-900 dark:text-zinc-100">{{ $notification->peminjaman->tanggal_pinjam->format('d M Y') }} - {{ $notification->peminjaman->tanggal_kembali_rencana->format('d M Y') }}</p>
-                        </div>
-                        <div>
-                            <span class="font-medium text-zinc-600 dark:text-zinc-400">Quantity:</span>
-                            <p class="text-zinc-900 dark:text-zinc-100">{{ $notification->peminjaman->jumlah }} unit(s)</p>
-                        </div>
-                        <div>
-                            <span class="font-medium text-zinc-600 dark:text-zinc-400">Total Cost:</span>
-                            <p class="text-zinc-900 dark:text-zinc-100">{{ $notification->peminjaman->getFormattedHargaSewaTotal() }}</p>
-                        </div>
-                        <div>
-                            <span class="font-medium text-zinc-600 dark:text-zinc-400">Current Status:</span>
-                            <p class="text-zinc-900 dark:text-zinc-100">{{ ucfirst($notification->peminjaman->status) }}</p>
-                        </div>
+                        @if($notification->type === 'rental_request')
+                            <div>
+                                <span class="font-medium text-zinc-600 dark:text-zinc-400">Requested Period:</span>
+                                <p class="text-zinc-900 dark:text-zinc-100">
+                                    @if($notification->peminjaman->tanggal_pinjam && $notification->peminjaman->tanggal_kembali_rencana)
+                                        {{ $notification->peminjaman->tanggal_pinjam->format('d M Y') }} - {{ $notification->peminjaman->tanggal_kembali_rencana->format('d M Y') }}
+                                    @else
+                                        Not specified
+                                    @endif
+                                </p>
+                            </div>
+                            <div>
+                                <span class="font-medium text-zinc-600 dark:text-zinc-400">Duration:</span>
+                                <p class="text-zinc-900 dark:text-zinc-100">
+                                    @if($notification->peminjaman->tanggal_pinjam && $notification->peminjaman->tanggal_kembali_rencana)
+                                        {{ $notification->peminjaman->tanggal_pinjam->diffInDays($notification->peminjaman->tanggal_kembali_rencana) + 1 }} days
+                                    @else
+                                        Not calculated
+                                    @endif
+                                </p>
+                            </div>
+                            <div>
+                                <span class="font-medium text-zinc-600 dark:text-zinc-400">Total Cost:</span>
+                                <p class="text-zinc-900 dark:text-zinc-100">{{ $notification->peminjaman->getFormattedHargaSewaTotal() }}</p>
+                            </div>
+                            <div>
+                                <span class="font-medium text-zinc-600 dark:text-zinc-400">Approval Status:</span>
+                                <p class="text-zinc-900 dark:text-zinc-100">{{ ucfirst($notification->peminjaman->rental_status) }}</p>
+                            </div>
+                        @else
+                            <div>
+                                <span class="font-medium text-zinc-600 dark:text-zinc-400">Rental Period:</span>
+                                <p class="text-zinc-900 dark:text-zinc-100">{{ $notification->peminjaman->tanggal_pinjam->format('d M Y') }} - {{ $notification->peminjaman->tanggal_kembali_rencana->format('d M Y') }}</p>
+                            </div>
+                            <div>
+                                <span class="font-medium text-zinc-600 dark:text-zinc-400">Quantity:</span>
+                                <p class="text-zinc-900 dark:text-zinc-100">{{ $notification->peminjaman->jumlah }} unit(s)</p>
+                            </div>
+                            <div>
+                                <span class="font-medium text-zinc-600 dark:text-zinc-400">Total Cost:</span>
+                                <p class="text-zinc-900 dark:text-zinc-100">{{ $notification->peminjaman->getFormattedHargaSewaTotal() }}</p>
+                            </div>
+                            <div>
+                                <span class="font-medium text-zinc-600 dark:text-zinc-400">Current Status:</span>
+                                <p class="text-zinc-900 dark:text-zinc-100">{{ ucfirst($notification->peminjaman->status) }}</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -154,9 +222,44 @@
             <!-- Sidebar Actions -->
             <div class="space-y-6">
                 <!-- Action Buttons -->
-                @if($notification->peminjaman->return_status === 'requested')
+                @if($notification->type === 'rental_request' && $notification->peminjaman->rental_status === 'pending')
                     <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
-                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Actions</h3>
+                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Rental Approval Actions</h3>
+
+                        <div class="space-y-3">
+                            <!-- Approve Button -->
+                            <form action="{{ route('admin.notifications.approve-rental', $notification->id) }}" method="POST" class="w-full">
+                                @csrf
+                                <flux:button
+                                    type="button"
+                                    variant="primary"
+                                    class="w-full"
+                                    onclick="confirmApproveRental()"
+                                >
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Approve Rental
+                                </flux:button>
+                            </form>
+
+                            <!-- Reject Button -->
+                            <flux:button
+                                type="button"
+                                variant="danger"
+                                class="w-full"
+                                onclick="showRejectRentalModal()"
+                            >
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Reject Rental
+                            </flux:button>
+                        </div>
+                    </div>
+                @elseif($notification->type === 'return_request' && $notification->peminjaman->return_status === 'requested')
+                    <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
+                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Return Approval Actions</h3>
 
                         <div class="space-y-3">
                             <!-- Approve Button -->
@@ -189,34 +292,84 @@
                             </flux:button>
                         </div>
                     </div>
-                @elseif($notification->peminjaman->return_status === 'approved')
-                    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
-                        <div class="flex items-center">
-                            <svg class="w-6 h-6 text-green-600 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <div>
-                                <h3 class="text-sm font-semibold text-green-800 dark:text-green-200">Return Approved</h3>
-                                <p class="text-xs text-green-600 dark:text-green-400 mt-1">
-                                    Approved on {{ $notification->peminjaman->approved_return_at->format('d M Y, H:i') }}
-                                </p>
+                @else
+                    <!-- Status Display -->
+                    @if($notification->type === 'rental_request')
+                        @if($notification->peminjaman->rental_status === 'approved')
+                            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-green-600 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-green-800 dark:text-green-200">Rental Approved</h3>
+                                        <p class="text-xs text-green-600 dark:text-green-400 mt-1">
+                                            Approved on {{ $notification->peminjaman->rental_approved_at->format('d M Y, H:i') }}
+                                        </p>
+                                        @if($notification->peminjaman->rental_approved_by)
+                                            <p class="text-xs text-green-600 dark:text-green-400">
+                                                By: {{ $notification->peminjaman->rentalApprovedBy->name }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                @elseif($notification->peminjaman->return_status === 'rejected')
-                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-                        <div class="flex items-center">
-                            <svg class="w-6 h-6 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            <div>
-                                <h3 class="text-sm font-semibold text-red-800 dark:text-red-200">Return Rejected</h3>
-                                <p class="text-xs text-red-600 dark:text-red-400 mt-1">
-                                    Rejected on {{ $notification->peminjaman->approved_return_at->format('d M Y, H:i') }}
-                                </p>
+                        @elseif($notification->peminjaman->rental_status === 'rejected')
+                            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    <div class="flex-1">
+                                        <h3 class="text-sm font-semibold text-red-800 dark:text-red-200">Rental Rejected</h3>
+                                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                            Rejected on {{ $notification->peminjaman->rental_approved_at->format('d M Y, H:i') }}
+                                        </p>
+                                        @if($notification->peminjaman->rental_approved_by)
+                                            <p class="text-xs text-red-600 dark:text-red-400">
+                                                By: {{ $notification->peminjaman->rentalApprovedBy->name }}
+                                            </p>
+                                        @endif
+                                        @if($notification->peminjaman->rental_rejection_reason)
+                                            <p class="text-xs text-red-600 dark:text-red-400 mt-2 p-2 bg-red-100 dark:bg-red-900/30 rounded">
+                                                Reason: {{ $notification->peminjaman->rental_rejection_reason }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        @endif
+                    @else
+                        @if($notification->peminjaman->return_status === 'approved')
+                            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-green-600 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-green-800 dark:text-green-200">Return Approved</h3>
+                                        <p class="text-xs text-green-600 dark:text-green-400 mt-1">
+                                            Approved on {{ $notification->peminjaman->approved_return_at->format('d M Y, H:i') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @elseif($notification->peminjaman->return_status === 'rejected')
+                            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-red-800 dark:text-red-200">Return Rejected</h3>
+                                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                            Rejected on {{ $notification->peminjaman->approved_return_at->format('d M Y, H:i') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endif
                 @endif
 
                 <!-- Quick Info -->
@@ -231,15 +384,38 @@
                             <span class="text-blue-700 dark:text-blue-300">Unit:</span>
                             <span class="text-blue-900 dark:text-blue-100">{{ $notification->peminjaman->unit->nama_unit }}</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-blue-700 dark:text-blue-300">Due Date:</span>
-                            <span class="text-blue-900 dark:text-blue-100">{{ $notification->peminjaman->tanggal_kembali_rencana->format('d M Y') }}</span>
-                        </div>
-                        @if($notification->peminjaman->is_terlambat)
+                        @if($notification->type === 'rental_request')
                             <div class="flex justify-between">
-                                <span class="text-red-600 dark:text-red-400">Late by:</span>
-                                <span class="text-red-700 dark:text-red-300">{{ now()->diffInDays($notification->peminjaman->tanggal_kembali_rencana) }} days</span>
+                                <span class="text-blue-700 dark:text-blue-300">Start Date:</span>
+                                <span class="text-blue-900 dark:text-blue-100">
+                                    @if($notification->peminjaman->tanggal_pinjam)
+                                        {{ $notification->peminjaman->tanggal_pinjam->format('d M Y') }}
+                                    @else
+                                        Not specified
+                                    @endif
+                                </span>
                             </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-700 dark:text-blue-300">End Date:</span>
+                                <span class="text-blue-900 dark:text-blue-100">
+                                    @if($notification->peminjaman->tanggal_kembali_rencana)
+                                        {{ $notification->peminjaman->tanggal_kembali_rencana->format('d M Y') }}
+                                    @else
+                                        Not specified
+                                    @endif
+                                </span>
+                            </div>
+                        @else
+                            <div class="flex justify-between">
+                                <span class="text-blue-700 dark:text-blue-300">Due Date:</span>
+                                <span class="text-blue-900 dark:text-blue-100">{{ $notification->peminjaman->tanggal_kembali_rencana->format('d M Y') }}</span>
+                            </div>
+                            @if($notification->peminjaman->is_terlambat)
+                                <div class="flex justify-between">
+                                    <span class="text-red-600 dark:text-red-400">Late by:</span>
+                                    <span class="text-red-700 dark:text-red-300">{{ now()->diffInDays($notification->peminjaman->tanggal_kembali_rencana) }} days</span>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -272,6 +448,132 @@
 
     @push('scripts')
     <script>
+        // Rental Approval Functions
+        function confirmApproveRental() {
+            Swal.fire({
+                title: 'Approve Rental Request?',
+                text: 'This will approve the rental request and allow the user to proceed with the rental. This action cannot be undone.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Approve',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Processing...',
+                        text: 'Approving rental request',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-gray-900',
+                            content: 'text-gray-600'
+                        }
+                    });
+
+                    // Submit the form
+                    document.querySelector('form[action*="approve-rental"]').submit();
+                }
+            });
+        }
+
+        function showRejectRentalModal() {
+            Swal.fire({
+                title: 'Reject Rental Request',
+                html: `
+                    <div class="text-left">
+                        <p class="text-gray-600 mb-4">Please provide a reason for rejecting this rental request:</p>
+                        <textarea
+                            id="rentalRejectionReason"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            rows="4"
+                            placeholder="Enter rejection reason..."
+                            maxlength="500"
+                            required
+                        ></textarea>
+                        <small class="text-gray-500">Maximum 500 characters</small>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Reject Request',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                },
+                preConfirm: () => {
+                    const reason = document.getElementById('rentalRejectionReason').value.trim();
+                    if (!reason) {
+                        Swal.showValidationMessage('Please provide a rejection reason');
+                        return false;
+                    }
+                    return reason;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitRejectRental(result.value);
+                }
+            });
+        }
+
+        function submitRejectRental(reason) {
+            // Show loading
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Rejecting rental request',
+                icon: 'info',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600'
+                }
+            });
+
+            // Create and submit form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route('admin.notifications.reject-rental', $notification->id) }}';
+
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+            form.appendChild(csrfToken);
+
+            const reasonInput = document.createElement('input');
+            reasonInput.type = 'hidden';
+            reasonInput.name = 'rejection_reason';
+            reasonInput.value = reason;
+            form.appendChild(reasonInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Return Approval Functions (existing)
         function confirmApprove() {
             Swal.fire({
                 title: 'Approve Return Request?',

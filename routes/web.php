@@ -70,7 +70,10 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->name('admin.')->group(f
         Route::get('/{notification}', [\App\Http\Controllers\Admin\NotificationController::class, 'show'])->name('show');
         Route::post('/{notification}/approve', [\App\Http\Controllers\Admin\NotificationController::class, 'approve'])->name('approve');
         Route::post('/{notification}/reject', [\App\Http\Controllers\Admin\NotificationController::class, 'reject'])->name('reject');
+        Route::post('/{notification}/approve-rental', [\App\Http\Controllers\Admin\NotificationController::class, 'approveRental'])->name('approve-rental');
+        Route::post('/{notification}/reject-rental', [\App\Http\Controllers\Admin\NotificationController::class, 'rejectRental'])->name('reject-rental');
         Route::put('/{notification}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('mark-as-read');
+        Route::post('/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
     });
 });
 
@@ -116,6 +119,33 @@ Route::get('/manual-cart-test', function () {
 Route::get('/simple-cart-test', function () {
     return view('simple-cart-test');
 })->middleware('auth');
+
+// Debug route for notifications
+Route::get('/debug-notifications', function () {
+    $notifications = \App\Models\Notification::with(['user', 'peminjaman.unit'])
+        ->where('is_admin_notification', true)
+        ->where('type', 'rental_request')
+        ->limit(5)
+        ->get();
+
+    $debug_data = [];
+    foreach ($notifications as $notification) {
+        $debug_data[] = [
+            'id' => $notification->id,
+            'type' => $notification->type,
+            'peminjaman_id' => $notification->peminjaman_id,
+            'tanggal_pinjam' => $notification->peminjaman?->tanggal_pinjam,
+            'tanggal_kembali_rencana' => $notification->peminjaman?->tanggal_kembali_rencana,
+            'rental_status' => $notification->peminjaman?->rental_status,
+            'harga_sewa_total' => $notification->peminjaman?->harga_sewa_total,
+            'unit_name' => $notification->peminjaman?->unit?->nama_unit,
+            'user_name' => $notification->user?->name,
+            'created_at' => $notification->created_at,
+        ];
+    }
+
+    return response()->json($debug_data);
+})->middleware(['auth', 'isAdmin']);
 
 Route::get('/test-cart-update', function () {
     return view('test_cart_update');

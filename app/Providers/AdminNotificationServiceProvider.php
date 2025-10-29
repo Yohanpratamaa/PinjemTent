@@ -25,7 +25,11 @@ class AdminNotificationServiceProvider extends ServiceProvider
         // Share unread notifications count with admin layout
         View::composer('components.layouts.admin', function ($view) {
             if (Auth::check() && Auth::user()->role === 'admin') {
-                $unreadNotificationsCount = Notification::forAdmin()->unread()->count();
+                // Count both rental and return request notifications
+                $unreadNotificationsCount = Notification::forAdmin()
+                    ->whereIn('type', ['rental_request', 'return_request'])
+                    ->unread()
+                    ->count();
                 $view->with('unreadNotificationsCount', $unreadNotificationsCount);
             }
         });
