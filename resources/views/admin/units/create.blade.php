@@ -14,7 +14,7 @@
 
         <!-- Form Section -->
         <div class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl">
-            <form method="POST" action="{{ route('admin.units.store') }}" enctype="multipart/form-data" class="p-6 space-y-6">
+            <form method="POST" action="{{ route('admin.units.store') }}" enctype="multipart/form-data" class="p-6 space-y-6" id="create-unit-form" onsubmit="return validateUnitForm(this)">
                 @csrf
 
                 <!-- Basic Information -->
@@ -297,4 +297,23 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        // Enable auto-save for create form
+        enableAutoSave('create-unit-form');
+
+        // Load any existing draft
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDraft('create-unit-form');
+        });
+
+        // Clear draft on successful submission
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+                clearDraft('create-unit-form');
+            @endif
+        });
+    </script>
+    @endpush
 </x-layouts.app>

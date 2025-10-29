@@ -167,6 +167,261 @@
         </flux:main>
 
         @fluxScripts
+
+        <!-- SweetAlert2 CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- Unit Management SweetAlert Enhancement -->
+        @if(request()->routeIs('admin.units.*'))
+            <script src="{{ asset('js/unit-sweetalert.js') }}"></script>
+        @endif
+
+        <!-- Unit Management SweetAlert Script -->
+        <script>
+            // SweetAlert for Flash Messages (Units)
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '{{ session('success') }}',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    toast: true,
+                    position: 'top-end'
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '{{ session('error') }}',
+                    showConfirmButton: true,
+                    confirmButtonColor: '#ef4444'
+                });
+            @endif
+
+            @if(session('warning'))
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Warning!',
+                    text: '{{ session('warning') }}',
+                    showConfirmButton: true,
+                    confirmButtonColor: '#f59e0b'
+                });
+            @endif
+
+            @if(session('info'))
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Information',
+                    text: '{{ session('info') }}',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    toast: true,
+                    position: 'top-end'
+                });
+            @endif
+
+            // Unit Delete Confirmation
+            function confirmDeleteUnit(unitId, unitName) {
+                Swal.fire({
+                    title: 'Delete Unit?',
+                    html: `Are you sure you want to delete unit:<br><strong>${unitName}</strong>?<br><br>This action cannot be undone.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, Delete!',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Submit the delete form
+                        document.getElementById(`delete-unit-form-${unitId}`).submit();
+                    }
+                });
+            }
+
+            // Unit Status Change Confirmation
+            function confirmStatusChange(unitId, unitName, newStatus) {
+                const statusMessages = {
+                    'tersedia': 'make this unit available',
+                    'maintenance': 'set this unit to maintenance mode',
+                    'dipinjam': 'mark this unit as rented'
+                };
+
+                Swal.fire({
+                    title: 'Change Unit Status?',
+                    html: `Are you sure you want to ${statusMessages[newStatus]} for:<br><strong>${unitName}</strong>?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3b82f6',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, Change Status!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Create and submit form for status change
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = `/admin/units/${unitId}/status`;
+
+                        const csrfToken = document.createElement('input');
+                        csrfToken.type = 'hidden';
+                        csrfToken.name = '_token';
+                        csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                        const methodField = document.createElement('input');
+                        methodField.type = 'hidden';
+                        methodField.name = '_method';
+                        methodField.value = 'PUT';
+
+                        const statusField = document.createElement('input');
+                        statusField.type = 'hidden';
+                        statusField.name = 'status';
+                        statusField.value = newStatus;
+
+                        form.appendChild(csrfToken);
+                        form.appendChild(methodField);
+                        form.appendChild(statusField);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            }
+
+            // Unit Form Validation Enhancement
+            function validateUnitForm(formElement) {
+                const requiredFields = formElement.querySelectorAll('[required]');
+                let hasErrors = false;
+
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        hasErrors = true;
+                        field.classList.add('border-red-500');
+                    } else {
+                        field.classList.remove('border-red-500');
+                    }
+                });
+
+                if (hasErrors) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validation Error',
+                        text: 'Please fill in all required fields.',
+                        confirmButtonColor: '#ef4444'
+                    });
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Unit Stock Update Confirmation
+            function confirmStockUpdate(unitId, unitName, currentStock, newStock) {
+                if (newStock < 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Stock',
+                        text: 'Stock cannot be negative.',
+                        confirmButtonColor: '#ef4444'
+                    });
+                    return false;
+                }
+
+                Swal.fire({
+                    title: 'Update Unit Stock?',
+                    html: `
+                        <div class="text-left">
+                            <p><strong>Unit:</strong> ${unitName}</p>
+                            <p><strong>Current Stock:</strong> ${currentStock}</p>
+                            <p><strong>New Stock:</strong> ${newStock}</p>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3b82f6',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, Update Stock!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Submit the form
+                        document.getElementById(`update-stock-form-${unitId}`).submit();
+                    }
+                });
+            }
+
+            // Success notification for operations
+            function showSuccessNotification(title, message) {
+                Swal.fire({
+                    icon: 'success',
+                    title: title,
+                    text: message,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+
+            // Error notification for operations
+            function showErrorNotification(title, message) {
+                Swal.fire({
+                    icon: 'error',
+                    title: title,
+                    text: message,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+
+            // Unit Photo Upload Preview
+            function previewUnitPhoto(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('photo-preview');
+                        if (preview) {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                        }
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            // Unit Category Assignment Confirmation
+            function confirmCategoryAssignment(unitId, unitName, categories) {
+                const categoryList = categories.join(', ');
+
+                Swal.fire({
+                    title: 'Assign Categories?',
+                    html: `
+                        <div class="text-left">
+                            <p><strong>Unit:</strong> ${unitName}</p>
+                            <p><strong>Categories:</strong> ${categoryList || 'None'}</p>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3b82f6',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, Assign Categories!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        </script>
+
         @stack('scripts')
     </body>
 </html>

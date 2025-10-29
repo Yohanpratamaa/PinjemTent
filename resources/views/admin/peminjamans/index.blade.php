@@ -350,7 +350,7 @@
                                                 <flux:icon.eye class="size-4" />
                                             </flux:button>
 
-                                            @if($peminjaman->status === 'dipinjam')
+                                            {{-- @if($peminjaman->status === 'dipinjam')
                                                 <form
                                                     method="POST"
                                                     action="{{ route('admin.peminjamans.return', $peminjaman) }}"
@@ -367,7 +367,7 @@
                                                         <flux:icon.check class="size-4" />
                                                     </flux:button>
                                                 </form>
-                                            @endif
+                                            @endif --}}
 
                                             <flux:button
                                                 size="sm"

@@ -259,16 +259,18 @@
                                                 method="POST"
                                                 action="{{ route('admin.units.destroy', $unit) }}"
                                                 class="inline"
-                                                onsubmit="return confirm('Are you sure you want to delete this unit?')"
+                                                id="delete-unit-form-{{ $unit->id }}"
                                             >
                                                 @csrf
                                                 @method('DELETE')
                                                 <flux:button
                                                     size="sm"
                                                     variant="ghost"
-                                                    type="submit"
+                                                    type="button"
                                                     title="Delete Unit"
+                                                    onclick="confirmDeleteUnit({{ $unit->id }}, '{{ addslashes($unit->nama_unit) }}')"
                                                 >
+
                                                     <flux:icon.trash class="size-4" />
                                                 </flux:button>
                                             </form>

@@ -27,7 +27,8 @@
                 action="{{ route('admin.units.update', $unit) }}"
                 enctype="multipart/form-data"
                 class="p-6 space-y-6"
-                onsubmit="return debugUnitUpdateForm(this) && validateForm()"
+                id="edit-unit-form-{{ $unit->id }}"
+                onsubmit="return validateUnitForm(this)"
                 data-unit-id="{{ $unit->id }}"
                 data-unit-name="{{ $unit->nama_unit }}"
             >
@@ -302,7 +303,7 @@
 
                 <!-- Form Actions -->
                 <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <flux:button type="submit" variant="primary" onclick="return validateForm()">
+                    <flux:button type="submit" variant="primary">
                         <div class="flex items-center gap-2">
                             <flux:icon.check class="size-4" />
                             <span>Update Unit</span>
@@ -325,11 +326,15 @@
                     class="inline"
                     data-unit-id="{{ $unit->id }}"
                     data-unit-name="{{ $unit->nama_unit }}"
-                    onsubmit="return debugDeleteUnit('{{ $unit->id }}', '{{ addslashes($unit->nama_unit) }}')"
+                    id="delete-unit-form-{{ $unit->id }}"
                 >
                     @csrf
                     @method('DELETE')
-                    <flux:button type="submit" variant="danger">
+                    <flux:button
+                        type="button"
+                        variant="danger"
+                        onclick="confirmDeleteUnit({{ $unit->id }}, '{{ addslashes($unit->nama_unit) }}')"
+                    >
                         <div class="flex items-center gap-2">
                             <flux:icon.trash class="size-4" />
                             <span>Delete Unit</span>
@@ -515,6 +520,14 @@
                 }
             });
         });
+
+        // Enable auto-save for edit form
+        enableAutoSave('edit-unit-form-{{ $unit->id }}');
+
+        // Clear draft on successful submission
+        @if(session('success'))
+            clearDraft('edit-unit-form-{{ $unit->id }}');
+        @endif
     </script>
 
     <!-- Debug Script -->

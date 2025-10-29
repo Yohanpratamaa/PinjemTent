@@ -347,11 +347,16 @@
                         <form
                             method="POST"
                             action="{{ route('admin.units.destroy', $unit) }}"
-                            onsubmit="return confirm('Are you sure you want to delete this unit? This action cannot be undone.')"
+                            id="delete-unit-form-{{ $unit->id }}"
                         >
                             @csrf
                             @method('DELETE')
-                            <flux:button type="submit" variant="danger" class="w-full flex items-center gap-2">
+                            <flux:button
+                                type="button"
+                                variant="danger"
+                                class="w-full flex items-center gap-2"
+                                onclick="confirmDeleteUnit({{ $unit->id }}, '{{ addslashes($unit->nama_unit) }}')"
+                            >
                                 <div class="flex items-center gap-2">
                                     <flux:icon.trash class="size-4" />
                                     Delete Unit
