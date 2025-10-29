@@ -54,14 +54,19 @@ PinjemTent adalah aplikasi web berbasis Laravel yang dirancang khusus untuk meng
 -   📱 **Responsif**: Interface yang dapat diakses melalui desktop dan mobile
 -   🔄 **Efisiensi Operasional**: Mengurangi kesalahan manual dan meningkatkan produktivitas
 
-### Keunggulan
+### 🎯 Keunggulan Aplikasi
 
--   ✅ **Clean Architecture**: Menggunakan pattern Controller → Service → Repository
--   ✅ **Real-time Stock Management**: Tracking stok dan ketersediaan real-time
--   ✅ **Advanced Search & Filter**: Pencarian dan filter yang powerful
--   ✅ **Automated Calculations**: Perhitungan otomatis biaya sewa dan denda
--   ✅ **Responsive Design**: Optimized untuk semua device
--   ✅ **Security First**: Implementasi authentication dan authorization yang robust
+-   ✅ **Clean Architecture**: Pattern Controller → Service → Repository untuk maintainability
+-   ✅ **Real-time Stock Management**: Tracking stok dan ketersediaan real-time dengan validasi
+-   ✅ **Advanced Search & Filter**: Pencarian powerful dengan multiple filter options
+-   ✅ **Automated Calculations**: Perhitungan otomatis biaya sewa, durasi, dan denda keterlambatan
+-   ✅ **Shopping Cart System**: Keranjang belanja lengkap dengan validation dan checkout
+-   ✅ **Responsive Design**: Optimized untuk desktop, tablet, dan mobile devices
+-   ✅ **Security First**: Multi-layer security dengan authentication dan authorization
+-   ✅ **User-Friendly Interface**: UI/UX yang intuitif dengan feedback real-time
+-   ✅ **Notification System**: Sistem notifikasi untuk admin dan user
+-   ✅ **Data Integrity**: Comprehensive validation dan error handling
+-   ✅ **Scalable Architecture**: Modular design untuk future development
 
 ---
 
@@ -69,57 +74,163 @@ PinjemTent adalah aplikasi web berbasis Laravel yang dirancang khusus untuk meng
 
 ### 👑 Admin Features
 
--   **Dashboard Analytics**: Overview bisnis dengan grafik dan statistik
--   **Manajemen Unit**:
-    -   CRUD peralatan camping (Tenda, Kompor, Sleeping Bag, dll)
-    -   Upload gambar produk
-    -   Kategorisasi dan filtering
-    -   Bulk operations
--   **Manajemen Kategori**: Organisasi produk berdasarkan jenis
--   **Manajemen User**:
-    -   CRUD data anggota/customer
-    -   Role & permission management
-    -   Profile management
--   **Manajemen Peminjaman**:
-    -   Approval/reject peminjaman
-    -   Tracking status real-time
-    -   Perhitungan denda otomatis
-    -   History dan reporting
--   **Laporan & Analytics**:
-    -   Laporan keuangan
-    -   Laporan stok
-    -   Export ke Excel/PDF
-    -   Dashboard metrics
+#### 📊 Dashboard & Analytics
+
+-   **Dashboard Analytics**: Overview bisnis dengan statistik real-time
+-   **Summary Cards**: Total unit, stok tersedia, dan barang disewa
+-   **Monthly Rentals Chart**: Grafik penyewaan per bulan (12 bulan terakhir)
+-   **Category Rentals Chart**: Grafik kategori paling banyak disewa
+-   **Quick Actions Panel**: Akses cepat ke fitur administrasi
+
+#### 🏕️ Manajemen Unit (Inventory)
+
+-   **CRUD Operations**: Create, Read, Update, Delete unit peralatan camping
+-   **Upload Foto Produk**: Fitur upload dan preview gambar unit
+-   **Kategorisasi Multiple**: Satu unit bisa masuk ke beberapa kategori
+-   **Advanced Search & Filter**: Pencarian by nama, kode, status, dan kategori
+-   **Stock Management**: Tracking stok tersedia, dipinjam, dan maintenance
+-   **Pricing Control**: Set harga sewa per hari dan denda keterlambatan
+-   **Unit Status**: Tersedia, dipinjam, maintenance
+-   **Bulk Operations**: Edit multiple units sekaligus
+
+#### 📂 Manajemen Kategori
+
+-   **CRUD Kategori**: Tambah, edit, hapus kategori peralatan
+-   **Kategori dengan Deskripsi**: Setiap kategori memiliki deskripsi lengkap
+-   **Many-to-Many Relationship**: Unit bisa masuk multiple kategori
+
+#### 👥 Manajemen User
+
+-   **CRUD Users**: Tambah, edit, view, hapus user
+-   **Role Management**: Admin dan User dengan akses berbeda
+-   **User Statistics**: Total users, admin count, user count
+-   **User Search**: Pencarian by nama, email, role
+-   **User Profile Details**: Informasi lengkap user termasuk history peminjaman
+-   **Security**: Password hashing dan validation
+
+#### 📋 Manajemen Peminjaman
+
+-   **Approval System**: Approve/reject peminjaman dari user
+-   **Real-time Status Tracking**: Pending, disetujui, dipinjam, dikembalikan, terlambat, dibatalkan
+-   **Rental Approval Flow**: Sistem persetujuan berlapis dengan notification
+-   **Return Request Management**: Kelola permintaan pengembalian dari user
+-   **Advanced Filtering**: Filter by status, tanggal, user, unit
+-   **Late Fee Calculation**: Perhitungan denda otomatis untuk keterlambatan
+-   **Detailed Rental Info**: View lengkap semua detail peminjaman
+-   **Financial Tracking**: Track total biaya, denda, dan pembayaran
+
+#### 🔔 Notification System (Admin)
+
+-   **Real-time Notifications**: Notifikasi langsung untuk aktivitas penting
+-   **Rental Request Alerts**: Notifikasi saat ada permintaan penyewaan baru
+-   **Return Request Alerts**: Notifikasi saat user minta pengembalian
+-   **Notification Management**: Mark as read, mark all as read
+-   **Action Buttons**: Quick approve/reject dari notification
 
 ### 👤 User Features
 
--   **Registrasi & Login**: Sistem authentication dengan email verification
--   **Browse Catalog**:
-    -   Lihat katalog peralatan dengan gambar dan detail
-    -   Advanced search dan filter
-    -   Availability checker
--   **Booking System**:
-    -   Pilih tanggal dan durasi peminjaman
-    -   Real-time price calculation
-    -   Multiple items booking
--   **Profile Management**:
-    -   Update data pribadi
-    -   Riwayat peminjaman
-    -   Status tracking
--   **Notification System**:
-    -   Email notifications
-    -   In-app notifications
-    -   Reminder sistem
+#### 🔐 Authentication & Profile
+
+-   **User Registration**: Pendaftaran akun baru dengan validasi
+-   **Login System**: Login dengan email dan password
+-   **Profile Management**: Update nama, email, dan informasi pribadi
+-   **Role-based Redirect**: Auto redirect ke dashboard sesuai role
+
+#### 🏕️ Browse & Search Catalog
+
+-   **Tent Catalog**: Browse semua peralatan camping tersedia
+-   **Advanced Search**: Pencarian by nama unit dengan live search
+-   **Category Filter**: Filter produk berdasarkan kategori
+-   **Real-time Availability**: Check stok tersedia real-time
+-   **Featured Products**: Tampilan produk unggulan di dashboard
+-   **Product Images**: Galeri foto untuk setiap unit
+-   **Detailed Specifications**: Info lengkap merk, kapasitas, deskripsi
+
+#### 🛒 Shopping Cart System
+
+-   **Add to Cart**: Tambah produk ke keranjang dengan quantity dan tanggal
+-   **Cart Management**: Edit quantity, tanggal, dan notes dalam keranjang
+-   **Real-time Price Calculator**: Hitung otomatis total biaya berdasarkan durasi
+-   **Cart Validation**: Validasi stok dan tanggal sebelum checkout
+-   **Remove Items**: Hapus item individual atau kosongkan keranjang
+-   **Order Summary**: Ringkasan pesanan dengan breakdown harga
+-   **Checkout Process**: Convert keranjang menjadi rental request
+
+#### 📅 Booking & Rental System
+
+-   **Date Selection**: Pilih tanggal mulai dan selesai penyewaan
+-   **Quantity Management**: Tentukan jumlah unit yang ingin disewa
+-   **Duration Calculator**: Hitung otomatis durasi dan total biaya
+-   **Rental Notes**: Tambah catatan khusus untuk admin
+-   **Instant Booking**: Add to cart langsung atau form booking detail
+-   **Availability Check**: Validasi stok tersedia untuk tanggal yang dipilih
+-   **Multiple Item Booking**: Sewa beberapa item sekaligus dalam satu transaksi
+
+#### 📊 Rental History & Tracking
+
+-   **Complete Rental History**: Riwayat lengkap semua penyewaan
+-   **Status Tracking**: Monitor status real-time (pending, disetujui, dipinjam, dll)
+-   **Advanced Filter**: Filter by status, tanggal, dan keyword
+-   **Rental Statistics**: Total rentals, pending, completed, cancelled
+-   **Detailed View**: Info lengkap setiap transaksi termasuk timeline
+-   **Cancel Rental**: Batalkan penyewaan yang belum disetujui
+-   **Return Request**: Request pengembalian untuk rental aktif
+-   **Invoice Generation**: Generate dan download invoice PDF
+-   **Quick Actions**: Sewa lagi, lihat unit, kontak support
+
+#### 🔔 Notification & Communication
+
+-   **Return Request System**: Request pengembalian dengan pesan ke admin
+-   **Status Updates**: Notifikasi perubahan status peminjaman
+-   **Approval Notifications**: Info real-time approval/rejection
+-   **Late Fee Alerts**: Notifikasi denda keterlambatan
+-   **Communication Tools**: Sistem pesan dengan admin
 
 ### 🔧 System Features
 
--   **Authentication & Authorization**: Role-based access control
--   **Email Notifications**: Automated email untuk berbagai event
--   **File Upload**: Secure file upload dengan validation
--   **Responsive Design**: Mobile-first approach
--   **API Ready**: RESTful API endpoints
--   **Audit Trail**: Log semua aktivitas penting
--   **Backup System**: Automated database backup
+#### 🔐 Authentication & Security
+
+-   **Laravel Fortify**: Robust authentication system
+-   **Role-based Access Control**: Admin dan User dengan hak akses berbeda
+-   **Session Management**: Secure session handling
+-   **Password Hashing**: Bcrypt password encryption
+-   **CSRF Protection**: Built-in security protection
+-   **Form Request Validation**: Server-side validation untuk semua input
+
+#### 📱 User Experience
+
+-   **Responsive Design**: Mobile-first approach dengan TailwindCSS
+-   **Dark/Light Mode**: Toggle tema sesuai preferensi user
+-   **Real-time Feedback**: Toast notifications dan alerts
+-   **Interactive Components**: Livewire reactive components
+-   **Progressive Enhancement**: Alpine.js untuk interaktivitas
+-   **Accessible UI**: ARIA labels dan keyboard navigation
+
+#### 💾 Database & Performance
+
+-   **Optimized Queries**: Efficient database operations dengan indexing
+-   **Relationship Management**: Eloquent ORM relationships
+-   **Migration System**: Version control untuk database schema
+-   **Seeding**: Data sample untuk development dan testing
+-   **Soft Deletes**: Safe data removal (jika diimplementasikan)
+-   **Query Optimization**: Eager loading dan query caching
+
+#### 🔄 Business Logic
+
+-   **Stock Management**: Real-time inventory tracking
+-   **Automated Calculations**: Price, duration, dan late fee calculation
+-   **Status Workflow**: Comprehensive rental status management
+-   **Data Validation**: Multi-layer validation (client & server)
+-   **Error Handling**: Graceful error management dengan logging
+-   **Transaction Safety**: Database transactions untuk data integrity
+
+#### 📊 Reporting & Analytics
+
+-   **Dashboard Metrics**: Real-time business statistics
+-   **Chart Visualizations**: Chart.js untuk data visualization
+-   **Export Functionality**: PDF invoice generation
+-   **Audit Trail**: Log aktivitas penting (via Laravel logs)
+-   **Performance Monitoring**: Query performance tracking
 
 ---
 
@@ -418,7 +529,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 ┌─────────────┐    ┌─────────────────┐    ┌─────────────┐
 │    users    │    │   peminjamans   │    │    units    │
 ├─────────────┤    ├─────────────────┤    ├─────────────┤
-│ id (PK)     │◄──┤ user_id (FK)    │   ┌┤ id (PK)     │
+│ id (PK)     │◄── ┤ user_id (FK)    │   ┌┤ id (PK)     │
 │ name        │    │ unit_id (FK)    │──►│ kode_unit   │
 │ email       │    │ kode_peminjaman │   │ nama_unit   │
 │ role        │    │ jumlah          │   │ merk        │
@@ -436,9 +547,9 @@ MAIL_FROM_NAME="${APP_NAME}"
 ├─────────────────┤    │ kategoris   │          │
 │ unit_id (FK)    │───►│ id (PK)     │◄─────────┘
 │ kategori_id(FK) │◄──┤ nama_kategori│
-└─────────────────┘    │ deskripsi    │
-                       │ created_at   │
-                       │ updated_at   │
+└─────────────────┘    │ deskripsi   │
+                       │ created_at  │
+                       │ updated_at  │
                        └─────────────┘
 ```
 
@@ -468,6 +579,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 | merk                | VARCHAR(100)  | Brand/merk                         |
 | kapasitas           | VARCHAR(100)  | Kapasitas (4 orang, 2 burner, dll) |
 | deskripsi           | TEXT          | Deskripsi lengkap                  |
+| foto                | VARCHAR(255)  | Path file foto unit                |
 | status              | ENUM          | tersedia, dipinjam, maintenance    |
 | stok                | INT           | Jumlah stok tersedia               |
 | harga_sewa_per_hari | DECIMAL(10,2) | Harga sewa per hari                |
@@ -507,7 +619,19 @@ MAIL_FROM_NAME="${APP_NAME}"
 | tanggal_kembali_rencana | DATE          | Tanggal rencana kembali                                |
 | tanggal_kembali_aktual  | DATE          | Tanggal aktual kembali                                 |
 | status                  | ENUM          | pending, dipinjam, dikembalikan, terlambat, dibatalkan |
+| rental_status           | ENUM          | pending, approved, rejected (approval workflow)        |
+| rental_approved_at      | TIMESTAMP     | Tanggal approval                                       |
+| rental_approved_by      | BIGINT (FK)   | Admin yang approve                                     |
+| rental_rejection_reason | TEXT          | Alasan rejection (jika ditolak)                        |
+| return_status           | ENUM          | not_requested, requested, approved, rejected           |
+| return_requested_at     | TIMESTAMP     | Tanggal request return                                 |
+| return_message          | TEXT          | Pesan return dari user                                 |
+| approved_return_at      | TIMESTAMP     | Tanggal approval return                                |
+| approved_by             | BIGINT (FK)   | Admin yang approve return                              |
 | harga_sewa_total        | DECIMAL(12,2) | Total biaya sewa                                       |
+| denda                   | DECIMAL(10,2) | Denda per hari                                         |
+| hari_terlambat          | INT           | Jumlah hari terlambat                                  |
+| keterangan_denda        | TEXT          | Keterangan denda                                       |
 | denda_total             | DECIMAL(12,2) | Total denda                                            |
 | total_bayar             | DECIMAL(12,2) | Total yang harus dibayar                               |
 | catatan_peminjam        | TEXT          | Catatan dari peminjam                                  |
@@ -515,14 +639,73 @@ MAIL_FROM_NAME="${APP_NAME}"
 | created_at              | TIMESTAMP     | Tanggal dibuat                                         |
 | updated_at              | TIMESTAMP     | Tanggal diupdate                                       |
 
+#### 🛒 carts
+
+| Field           | Type          | Description                     |
+| --------------- | ------------- | ------------------------------- |
+| id              | BIGINT (PK)   | Primary key                     |
+| user_id         | BIGINT (FK)   | Reference ke users              |
+| unit_id         | BIGINT (FK)   | Reference ke units              |
+| quantity        | INT           | Jumlah unit dalam cart          |
+| tanggal_mulai   | DATE          | Tanggal mulai sewa              |
+| tanggal_selesai | DATE          | Tanggal selesai sewa            |
+| notes           | TEXT          | Catatan tambahan                |
+| harga_per_hari  | DECIMAL(10,2) | Harga per hari saat add to cart |
+| total_harga     | DECIMAL(10,2) | Total harga calculated          |
+| created_at      | TIMESTAMP     | Tanggal dibuat                  |
+| updated_at      | TIMESTAMP     | Tanggal diupdate                |
+
+#### 🔔 notifications
+
+| Field                 | Type         | Description                           |
+| --------------------- | ------------ | ------------------------------------- |
+| id                    | BIGINT (PK)  | Primary key                           |
+| type                  | VARCHAR(255) | Tipe notifikasi (rental_request, etc) |
+| user_id               | BIGINT (FK)  | User yang trigger notification        |
+| peminjaman_id         | BIGINT (FK)  | Reference ke peminjamans              |
+| title                 | VARCHAR(255) | Judul notification                    |
+| message               | TEXT         | Isi message                           |
+| data                  | JSON         | Additional data (serialized)          |
+| read_at               | TIMESTAMP    | Tanggal dibaca                        |
+| is_admin_notification | BOOLEAN      | Apakah untuk admin atau user          |
+| created_at            | TIMESTAMP    | Tanggal dibuat                        |
+| updated_at            | TIMESTAMP    | Tanggal diupdate                      |
+
 ### Sample Data
 
-Aplikasi sudah dilengkapi dengan data sample:
+Aplikasi sudah dilengkapi dengan data sample melalui seeder:
 
--   1 Admin user dan beberapa test user
--   7 Unit peralatan camping
--   5 Kategori (Tenda Camping, Alat Masak, Tas Carrier, Sleeping Bag, Alat Navigasi)
--   Sample transaksi peminjaman dengan berbagai status
+#### 🔑 Default Accounts
+
+-   **Admin**: admin@pinjemtent.com / admin123
+-   **Test User**: user@pinjemtent.com / user123
+
+#### 🏕️ Sample Units (7 items)
+
+-   **Tenda Camping**: Great Outdoor, Consina, Rei, dan Eiger
+-   **Sleeping Bag**: Carrier dan sleeping equipment
+-   **Tas Carrier**: Berbagai ukuran dan brand
+
+#### 📂 Kategori (5 categories)
+
+-   Tenda Camping
+-   Alat Masak
+-   Tas Carrier
+-   Sleeping Bag
+-   Alat Navigasi
+
+#### 🔄 System Tables
+
+-   Cache tables untuk performance
+-   Job tables untuk queue system
+-   Session management tables
+-   Failed jobs tracking
+
+#### 📊 Sample Transactions
+
+-   Demo rental transactions dengan berbagai status
+-   Sample notifications untuk testing
+-   Cart items untuk demo shopping experience
 
 ---
 
@@ -533,85 +716,206 @@ Aplikasi sudah dilengkapi dengan data sample:
 #### Untuk Admin:
 
 1. Akses `http://localhost:8000/login`
-2. Login dengan credentials admin
-3. Redirect ke admin dashboard
+2. Login dengan credentials admin (admin@pinjemtent.com / admin123)
+3. Auto redirect ke admin dashboard
 
 #### Untuk User:
 
-1. Register account baru di `/register`
-2. Verifikasi email (jika diaktifkan)
-3. Login dan akses user dashboard
+1. Register account baru di `/register` atau login existing account
+2. Login dengan email dan password
+3. Auto redirect ke user dashboard
 
 ### 👑 Admin Dashboard
 
-#### Manajemen Unit
+#### 📊 Dashboard Overview
+
+-   **Summary Cards**: View total unit, stok tersedia, dan barang disewa
+-   **Monthly Chart**: Grafik penyewaan 12 bulan terakhir
+-   **Category Chart**: Kategori paling banyak disewa
+-   **Quick Actions**: Akses cepat ke manajemen user dan system logs
+
+#### 🏕️ Manajemen Unit
 
 1. **Tambah Unit Baru**:
 
-    - Klik "Add New Unit"
-    - Isi form: kode unit, nama, merk, kapasitas, deskripsi
-    - Set harga sewa dan denda
-    - Pilih kategori
-    - Submit
+    - Navigate ke "Units" → "Add New Unit"
+    - Isi form: kode unit (unique), nama, merk, kapasitas
+    - Upload foto unit (optional)
+    - Set harga sewa per hari dan denda keterlambatan
+    - Pilih kategori (multiple selection)
+    - Set stok dan status (tersedia/maintenance)
 
 2. **Edit Unit**:
 
-    - Klik unit dari list
-    - Klik "Edit Unit"
-    - Update informasi yang diperlukan
+    - Klik unit dari list atau search
+    - Klik "Edit" button
+    - Update informasi, foto, atau kategori
     - Save changes
 
-3. **Monitoring Stock**:
+3. **Stock Monitoring**:
     - Dashboard menampilkan real-time stock
     - Available stock = Total stock - Active rentals
-    - Warning untuk stock rendah
+    - Color-coded status indicators
 
-#### Manajemen Peminjaman
+#### 📋 Manajemen Peminjaman
 
 1. **Approval Process**:
 
-    - Review peminjaman pending
-    - Check availability
-    - Approve/reject dengan catatan
+    - View semua rental requests di "Rentals"
+    - Filter by status: pending, approved, rejected
+    - Click "View Details" untuk info lengkap
+    - Approve/reject dengan catatan admin
 
-2. **Tracking**:
-    - Monitor peminjaman aktif
-    - Track overdue rentals
-    - Automatic late fee calculation
+2. **Tracking & Monitoring**:
+
+    - Monitor peminjaman aktif real-time
+    - View rental history dan statistics
+    - Automatic late fee calculation untuk overdue rentals
+    - Status tracking: pending → approved → dipinjam → dikembalikan
+
+3. **Return Management**:
+    - Process return requests dari users
+    - Approve/reject return requests
+    - Update actual return date
+    - Calculate final fees including late charges
+
+#### 👥 User Management
+
+1. **View Users**: List semua user dengan search dan filter
+2. **Add User**: Create user baru dengan role assignment
+3. **Edit User**: Update profile, role, atau status
+4. **User Details**: View rental history dan statistics per user
+
+#### 🔔 Notification Center
+
+-   Real-time notifications untuk rental requests
+-   Return request alerts
+-   Quick action buttons (approve/reject)
+-   Mark as read/unread functionality
 
 ### 👤 User Interface
 
-#### Browse & Search
+#### 🏠 User Dashboard
 
-1. **Katalog Produk**:
+-   **Welcome Section**: Personal greeting dan user info
+-   **Featured Tents**: Produk unggulan yang tersedia
+-   **Solo Gear**: Kategori khusus untuk traveler solo
+-   **Quick Navigation**: Access ke sewa produk dan riwayat
 
-    - Browse semua peralatan tersedia
-    - Filter by kategori, harga, availability
-    - Search by nama atau kode
+#### 🏕️ Browse & Search Tents
 
-2. **Detail Produk**:
-    - Lihat gambar dan spesifikasi lengkap
-    - Check real-time availability
-    - Calculator harga otomatis
+1. **Catalog Browsing**:
 
-#### Booking Process
+    - View semua tents tersedia dengan foto
+    - Grid layout dengan product cards
+    - Real-time availability status
+    - Price information per day
 
-1. **Pilih Item**:
+2. **Search & Filter**:
 
-    - Select peralatan yang diinginkan
-    - Set tanggal pinjam dan kembali
-    - Specify quantity
+    - Live search by nama unit
+    - Filter by kategori (dropdown)
+    - Availability filter
+    - Sort by price, name, atau popularity
 
-2. **Review & Submit**:
+3. **Product Details**:
+    - Full product information (nama, merk, kapasitas)
+    - High-quality product images
+    - Pricing breakdown (sewa + denda)
+    - Real-time stock availability
+    - Related categories
 
-    - Review total cost
-    - Add notes/requirements
-    - Submit booking
+#### 🛒 Shopping Cart Experience
 
-3. **Tracking**:
-    - Monitor status approval
-    - View booking history
-    - Notifications
+1. **Add to Cart**:
+
+    - Pilih quantity (within stock limits)
+    - Set tanggal mulai dan selesai
+    - Add optional notes
+    - Real-time price calculation
+
+2. **Cart Management**:
+
+    - View semua items dalam cart
+    - Edit quantity, dates, atau notes
+    - Remove individual items
+    - Clear entire cart
+    - Order summary dengan total
+
+3. **Checkout Process**:
+    - Review order summary
+    - Validate all items dan dates
+    - Convert cart items ke rental requests
+    - Submit untuk admin approval
+
+#### 📅 Rental Process
+
+1. **Direct Booking**:
+
+    - Dari product detail page
+    - Quick add to cart dengan default dates
+    - Atau detail booking form
+
+2. **Form Booking**:
+    - Comprehensive rental form
+    - Date picker dengan validation
+    - Quantity selection (stock-limited)
+    - Notes untuk admin
+    - Terms & conditions
+
+#### 📊 Rental History & Management
+
+1. **History Overview**:
+
+    - Complete rental history dengan statistics
+    - Filter by status, date range, atau keyword
+    - Pagination untuk large datasets
+    - Export functionality (future feature)
+
+2. **Rental Tracking**:
+
+    - Real-time status updates
+    - Timeline view untuk setiap rental
+    - Late fee calculations (automatic)
+    - Action buttons (cancel, return request)
+
+3. **Rental Details**:
+
+    - Comprehensive rental information
+    - Unit details dengan foto
+    - Financial breakdown
+    - Admin notes dan communications
+    - Invoice download (PDF)
+
+4. **User Actions**:
+    - Cancel pending rentals
+    - Request early return
+    - Contact admin via notes
+    - Rate rental experience (future feature)
+
+#### 🔔 Notifications & Communication
+
+-   Real-time status updates
+-   Return request confirmations
+-   Late fee notifications
+-   Admin approval/rejection alerts
+
+### 💡 Tips Penggunaan
+
+#### Untuk Admin:
+
+-   Regular monitoring dashboard untuk business insights
+-   Quick approval/rejection via notification center
+-   Use advanced filters untuk efficient rental management
+-   Monitor stock levels untuk inventory planning
+
+#### Untuk User:
+
+-   Browse featured items di dashboard untuk deals terbaik
+-   Use cart system untuk multiple item bookings
+-   Check availability dates sebelum add to cart
+-   Monitor rental status via history page
+-   Submit return requests sebelum due date untuk avoid late fees
 
 ---
 
@@ -619,56 +923,175 @@ Aplikasi sudah dilengkapi dengan data sample:
 
 ### Authentication
 
-Aplikasi menggunakan session-based authentication untuk web dan token-based untuk API.
+Aplikasi menggunakan session-based authentication untuk web interface. API endpoints tersedia untuk integrasi external.
 
-#### Login API
+#### Routes Overview
+
+**Admin Routes** (`/admin/*` - requires admin role):
+
+```php
+/admin/dashboard          # Admin dashboard
+/admin/units             # Unit management (CRUD)
+/admin/kategoris         # Category management
+/admin/users             # User management
+/admin/peminjamans       # Rental management
+/admin/notifications     # Notification management
+```
+
+**User Routes** (`/user/*` - requires user role):
+
+```php
+/user/dashboard          # User dashboard
+/user/tents             # Browse tents catalog
+/user/cart              # Shopping cart management
+/user/rental-history    # Rental history & tracking
+```
+
+### Cart API Endpoints
+
+#### Add to Cart
 
 ```http
-POST /api/login
+POST /user/cart/add
 Content-Type: application/json
-
-{
-    "email": "user@example.com",
-    "password": "password"
-}
-```
-
-### Units API
-
-#### Get All Units
-
-```http
-GET /api/units
-```
-
-#### Get Unit Details
-
-```http
-GET /api/units/{id}
-```
-
-#### Check Availability
-
-```http
-GET /api/units/{id}/availability?start_date=2023-12-01&end_date=2023-12-05
-```
-
-### Peminjamans API
-
-#### Create Booking
-
-```http
-POST /api/peminjamans
-Content-Type: application/json
+X-CSRF-TOKEN: {token}
 
 {
     "unit_id": 1,
-    "jumlah": 2,
-    "tanggal_pinjam": "2023-12-01",
-    "tanggal_kembali_rencana": "2023-12-05",
-    "catatan_peminjam": "Untuk acara camping keluarga"
+    "quantity": 2,
+    "tanggal_mulai": "2025-11-01",
+    "tanggal_selesai": "2025-11-05",
+    "notes": "Untuk camping keluarga"
+}
+
+Response:
+{
+    "success": true,
+    "message": "Item berhasil ditambahkan ke keranjang!",
+    "cart_count": 3,
+    "cart_item": {...}
 }
 ```
+
+#### Update Cart Item
+
+```http
+PUT /user/cart/{cartId}
+Content-Type: application/json
+
+{
+    "quantity": 3,
+    "tanggal_mulai": "2025-11-02",
+    "tanggal_selesai": "2025-11-06",
+    "notes": "Updated notes"
+}
+```
+
+#### Remove from Cart
+
+```http
+DELETE /user/cart/{cartId}
+
+Response:
+{
+    "success": true,
+    "message": "Item berhasil dihapus dari keranjang!",
+    "cart_count": 2
+}
+```
+
+#### Get Cart Count
+
+```http
+GET /user/cart/count
+
+Response:
+{
+    "count": 3
+}
+```
+
+### Rental Management API
+
+#### Checkout Cart
+
+```http
+POST /user/cart/checkout
+
+Response: Redirect to rental history with success message
+```
+
+#### Cancel Rental
+
+```http
+PATCH /user/rental-history/{rentalId}/cancel
+
+Response: Redirect with status update
+```
+
+#### Request Return
+
+```http
+POST /user/rental-history/{rentalId}/request-return
+Content-Type: application/json
+
+{
+    "return_message": "Barang sudah tidak digunakan"
+}
+```
+
+### Admin API Endpoints
+
+#### Approve/Reject Rental
+
+```http
+POST /admin/notifications/{notificationId}/approve-rental
+POST /admin/notifications/{notificationId}/reject-rental
+
+{
+    "rejection_reason": "Stock tidak tersedia" // untuk reject
+}
+```
+
+#### Notification Management
+
+```http
+PUT /admin/notifications/{notificationId}/read
+POST /admin/notifications/mark-all-read
+```
+
+### Response Format
+
+Semua API responses menggunakan format JSON standard:
+
+**Success Response:**
+
+```json
+{
+    "success": true,
+    "message": "Operation completed successfully",
+    "data": {...}
+}
+```
+
+**Error Response:**
+
+```json
+{
+    "success": false,
+    "message": "Error description",
+    "errors": {...} // validation errors if any
+}
+```
+
+### Error Handling
+
+-   `400` - Bad Request (validation errors)
+-   `401` - Unauthorized (authentication required)
+-   `403` - Forbidden (insufficient permissions)
+-   `404` - Not Found (resource not found)
+-   `422` - Unprocessable Entity (validation failed)
+-   `500` - Internal Server Error
 
 ---
 
@@ -829,7 +1252,7 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 ### 🎯 Tim Pengembang
 
-**Nama Kelompok**: YAP (Yohan Andri Pratama)
+**Nama Kelompok**: YAP (Yohan Artha Pratama)
 
 #### 🏆 Project Leader & Full-Stack Developer
 
