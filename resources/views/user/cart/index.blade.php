@@ -375,9 +375,21 @@
                 const endDate = new Date(value);
 
                 if (endDate <= startDate) {
-                    alert('Tanggal selesai harus setelah tanggal mulai!');
-                    // Reset to previous value
-                    window.location.reload();
+                    Swal.fire({
+                        title: 'Tanggal Tidak Valid!',
+                        text: 'Tanggal selesai harus setelah tanggal mulai!',
+                        icon: 'warning',
+                        confirmButtonColor: '#F59E0B',
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-amber-800',
+                            content: 'text-amber-600',
+                            confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                        }
+                    }).then(() => {
+                        window.location.reload();
+                    });
                     return;
                 }
 
@@ -391,6 +403,22 @@
 
             console.log('Request data:', requestData);
 
+            // Show loading alert
+            Swal.fire({
+                title: 'Memperbarui...',
+                text: 'Sedang memperbarui item keranjang',
+                icon: 'info',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600'
+                }
+            });
+
             fetch(`/user/cart/${cartId}`, {
                 method: 'PUT',
                 body: JSON.stringify(requestData),
@@ -403,83 +431,249 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast(data.message, 'success');
-                    // Refresh page to update totals
-                    setTimeout(() => {
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-green-800',
+                            content: 'text-green-600'
+                        }
+                    }).then(() => {
                         window.location.reload();
-                    }, 1000);
+                    });
                 } else {
-                    showToast(data.message, 'error');
-                    // Revert the input value on error
-                    setTimeout(() => {
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonColor: '#EF4444',
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-red-800',
+                            content: 'text-red-600',
+                            confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                        }
+                    }).then(() => {
                         window.location.reload();
-                    }, 1000);
+                    });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
-                setTimeout(() => {
+                Swal.fire({
+                    title: 'Kesalahan!',
+                    text: 'Terjadi kesalahan. Silakan coba lagi.',
+                    icon: 'error',
+                    confirmButtonColor: '#EF4444',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        popup: 'border-0 shadow-2xl',
+                        title: 'text-lg font-semibold text-red-800',
+                        content: 'text-red-600',
+                        confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                    }
+                }).then(() => {
                     window.location.reload();
-                }, 1000);
+                });
             });
         }
 
         function removeFromCart(cartId) {
-            if (!confirm('Apakah Anda yakin ingin menghapus item ini dari keranjang?')) {
-                return;
-            }
+            Swal.fire({
+                title: 'Hapus Item?',
+                text: 'Apakah Anda yakin ingin menghapus item ini dari keranjang?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Menghapus...',
+                        text: 'Sedang menghapus item dari keranjang',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-gray-900',
+                            content: 'text-gray-600'
+                        }
+                    });
 
-            fetch(`/user/cart/${cartId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
+                    fetch(`/user/cart/${cartId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Berhasil!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonColor: '#10B981',
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    popup: 'border-0 shadow-2xl',
+                                    title: 'text-lg font-semibold text-gray-900',
+                                    content: 'text-gray-600',
+                                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                                }
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Gagal!',
+                                text: data.message,
+                                icon: 'error',
+                                confirmButtonColor: '#EF4444',
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    popup: 'border-0 shadow-2xl',
+                                    title: 'text-lg font-semibold text-gray-900',
+                                    content: 'text-gray-600',
+                                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Terjadi kesalahan. Silakan coba lagi.',
+                            icon: 'error',
+                            confirmButtonColor: '#EF4444',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                popup: 'border-0 shadow-2xl',
+                                title: 'text-lg font-semibold text-gray-900',
+                                content: 'text-gray-600',
+                                confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                            }
+                        });
+                    });
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    showToast(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
             });
         }
 
         function clearCart() {
-            if (!confirm('Apakah Anda yakin ingin mengosongkan seluruh keranjang?')) {
-                return;
-            }
+            Swal.fire({
+                title: 'Kosongkan Keranjang?',
+                text: 'Apakah Anda yakin ingin mengosongkan seluruh keranjang? Semua item akan dihapus.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Ya, Kosongkan!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Mengosongkan...',
+                        text: 'Sedang mengosongkan keranjang',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-gray-900',
+                            content: 'text-gray-600'
+                        }
+                    });
 
-            fetch('{{ route('user.cart.clear') }}', {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
+                    fetch('{{ route('user.cart.clear') }}', {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Berhasil!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonColor: '#10B981',
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    popup: 'border-0 shadow-2xl',
+                                    title: 'text-lg font-semibold text-gray-900',
+                                    content: 'text-gray-600',
+                                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                                }
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Gagal!',
+                                text: data.message,
+                                icon: 'error',
+                                confirmButtonColor: '#EF4444',
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    popup: 'border-0 shadow-2xl',
+                                    title: 'text-lg font-semibold text-gray-900',
+                                    content: 'text-gray-600',
+                                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Terjadi kesalahan. Silakan coba lagi.',
+                            icon: 'error',
+                            confirmButtonColor: '#EF4444',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                popup: 'border-0 shadow-2xl',
+                                title: 'text-lg font-semibold text-gray-900',
+                                content: 'text-gray-600',
+                                confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                            }
+                        });
+                    });
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    showToast(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
             });
         }
 
