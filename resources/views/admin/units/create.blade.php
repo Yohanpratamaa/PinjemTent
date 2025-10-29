@@ -264,20 +264,176 @@
                 </div>
 
                 <!-- Form Actions -->
-                <div class="flex items-center gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <flux:button type="submit" variant="primary">
-                        <div class="flex items-center gap-2">
-                            <flux:icon.plus class="size-4" />
-                            <span>Create Unit</span>
-                        </div>
+                                <!-- Submit Buttons -->
+                <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <flux:button variant="outline" href="{{ route('admin.units.index') }}">
+                        Cancel
                     </flux:button>
-                    <flux:button type="button" variant="outline" onclick="window.history.back()">
-                        <div class="flex items-center gap-2">
-                            <flux:icon.arrow-left class="size-4" />
-                            <span>Cancel</span>
-                        </div>
+                    <flux:button type="button" variant="primary" onclick="confirmSubmit()">
+                        <flux:icon.plus class="size-4" />
+                        Create Unit
                     </flux:button>
                 </div>
+            </form>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+            <div class="flex items-start gap-3">
+                <flux:icon.information-circle class="size-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div>
+                    <h3 class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">Tips for Creating Units</h3>
+                    <ul class="mt-2 text-sm text-blue-700 dark:text-blue-200 space-y-1">
+                        <li>• Use a consistent naming convention for unit codes (e.g., TNT-001, TNT-002)</li>
+                        <li>• Make sure the unit code is unique across all units</li>
+                        <li>• Select appropriate categories that describe the unit's features</li>
+                        <li>• Set initial stock quantity based on available inventory</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        function confirmSubmit() {
+            // Get form data for preview
+            const unitCode = document.querySelector('input[name="kode_unit"]').value;
+            const unitName = document.querySelector('input[name="nama_unit"]').value;
+            const price = document.querySelector('input[name="harga_sewa_per_hari"]').value;
+            const stock = document.querySelector('input[name="stok_tersedia"]').value;
+
+            // Basic validation
+            if (!unitCode || !unitName) {
+                Swal.fire({
+                    title: 'Missing Information',
+                    text: 'Please fill in the required fields (Unit Code and Unit Name) before creating the unit.',
+                    icon: 'warning',
+                    confirmButtonColor: '#F59E0B',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        popup: 'border-0 shadow-2xl',
+                        title: 'text-lg font-semibold text-gray-900',
+                        content: 'text-gray-600',
+                        confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                    }
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Create New Unit?',
+                html: `
+                    <div class="text-left">
+                        <p class="text-gray-600 mb-3">You are about to create a new unit with the following details:</p>
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-2">
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-700 dark:text-gray-300">Unit Code:</span>
+                                <span class="text-gray-900 dark:text-white">${unitCode}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-700 dark:text-gray-300">Unit Name:</span>
+                                <span class="text-gray-900 dark:text-white">${unitName}</span>
+                            </div>
+                            ${price ? `
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">Rental Price:</span>
+                                    <span class="text-green-600 dark:text-green-400">Rp ${parseInt(price).toLocaleString('id-ID')}/day</span>
+                                </div>
+                            ` : ''}
+                            ${stock ? `
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">Initial Stock:</span>
+                                    <span class="text-blue-600 dark:text-blue-400">${stock} units</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <p class="text-green-600 dark:text-green-400 text-sm mt-3">
+                            <strong>Note:</strong> The unit will be available for rental once created.
+                        </p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Create Unit',
+                cancelButtonText: 'Review Again',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Creating Unit...',
+                        text: 'Please wait while we add the unit to inventory',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-gray-900',
+                            content: 'text-gray-600'
+                        }
+                    });
+
+                    // Submit the form
+                    document.querySelector('form').submit();
+                }
+            });
+        }
+
+        // Show alerts for session flash messages
+        @if(session('error'))
+            Swal.fire({
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                icon: 'error',
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'OK',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-red-800',
+                    content: 'text-red-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            });
+        @endif
+
+        @if($errors->any())
+            Swal.fire({
+                title: 'Validation Error!',
+                html: `
+                    <div class="text-left">
+                        <p class="text-gray-600 mb-3">Please fix the following errors:</p>
+                        <ul class="list-disc list-inside text-red-600 dark:text-red-400 space-y-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                `,
+                icon: 'error',
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Fix Errors',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-red-800',
+                    content: 'text-red-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            });
+        @endif
+    </script>
+    @endpush
+</x-layouts.admin>
             </form>
         </div>
 

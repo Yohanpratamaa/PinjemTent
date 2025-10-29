@@ -255,22 +255,18 @@
                                             >
                                                 <flux:icon.pencil class="size-4" />
                                             </flux:button>
-                                            <form
-                                                method="POST"
-                                                action="{{ route('admin.units.destroy', $unit) }}"
-                                                class="inline"
-                                                onsubmit="return confirm('Are you sure you want to delete this unit?')"
+                                            <flux:button
+                                                size="sm"
+                                                variant="ghost"
+                                                type="button"
+                                                title="Delete Unit"
+                                                onclick="confirmDelete('{{ $unit->id }}', '{{ $unit->nama_unit }}', '{{ $unit->kode_unit }}')"
                                             >
+                                                <flux:icon.trash class="size-4" />
+                                            </flux:button>
+                                            <form id="delete-form-{{ $unit->id }}" method="POST" action="{{ route('admin.units.destroy', $unit) }}" class="hidden">
                                                 @csrf
                                                 @method('DELETE')
-                                                <flux:button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    type="submit"
-                                                    title="Delete Unit"
-                                                >
-                                                    <flux:icon.trash class="size-4" />
-                                                </flux:button>
                                             </form>
                                         </div>
                                     </td>
@@ -301,4 +297,92 @@
             @endif
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function confirmDelete(unitId, unitName, unitCode) {
+            Swal.fire({
+                title: 'Delete Unit?',
+                html: `
+                    <div class="text-left">
+                        <p class="text-gray-600 mb-2">You are about to delete:</p>
+                        <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                            <p class="font-semibold text-gray-900 dark:text-white">${unitName}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Code: ${unitCode}</p>
+                        </div>
+                        <p class="text-red-600 dark:text-red-400 text-sm mt-3">
+                            <strong>Warning:</strong> This action cannot be undone. All rental history for this unit will remain, but the unit will be permanently removed from inventory.
+                        </p>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Delete Unit',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Deleting Unit...',
+                        text: 'Please wait while we remove the unit from inventory',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-gray-900',
+                            content: 'text-gray-600'
+                        }
+                    });
+
+                    // Submit the form
+                    document.getElementById(`delete-form-${unitId}`).submit();
+                }
+            });
+        }
+
+        // Show alerts for session flash messages
+        @if(session('success'))
+            Swal.fire({
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-green-800',
+                    content: 'text-green-600'
+                }
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                icon: 'error',
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'OK',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-red-800',
+                    content: 'text-red-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            });
+        @endif
+    </script>
+    @endpush
 </x-layouts.admin>

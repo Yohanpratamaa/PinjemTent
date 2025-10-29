@@ -170,23 +170,30 @@
                                         <flux:icon.pencil class="size-4" />
                                     </flux:button>
                                     @if($kategori->units->count() === 0)
-                                        <form
-                                            method="POST"
-                                            action="{{ route('admin.kategoris.destroy', $kategori) }}"
-                                            class="inline"
-                                            onsubmit="return confirm('Are you sure you want to delete this category?')"
+                                        <flux:button
+                                            size="sm"
+                                            variant="ghost"
+                                            type="button"
+                                            title="Delete Category"
+                                            onclick="confirmDelete('{{ $kategori->id }}', '{{ $kategori->nama_kategori }}')"
                                         >
+                                            <flux:icon.trash class="size-4" />
+                                        </flux:button>
+                                        <form id="delete-form-{{ $kategori->id }}" method="POST" action="{{ route('admin.kategoris.destroy', $kategori) }}" class="hidden">
                                             @csrf
                                             @method('DELETE')
-                                            <flux:button
-                                                size="sm"
-                                                variant="ghost"
-                                                type="submit"
-                                                title="Delete Category"
-                                            >
-                                                <flux:icon.trash class="size-4" />
-                                            </flux:button>
                                         </form>
+                                    @else
+                                        <flux:button
+                                            size="sm"
+                                            variant="ghost"
+                                            type="button"
+                                            title="Cannot delete - category has units"
+                                            onclick="showCannotDeleteAlert('{{ $kategori->nama_kategori }}', {{ $kategori->units->count() }})"
+                                            disabled
+                                        >
+                                            <flux:icon.trash class="size-4 text-gray-400" />
+                                        </flux:button>
                                     @endif
                                 </div>
                             </div>
@@ -215,4 +222,119 @@
             @endif
         </div>
     </div>
-</x-layouts.app>
+
+    @push('scripts')
+    <script>
+        function confirmDelete(categoryId, categoryName) {
+            Swal.fire({
+                title: 'Delete Category?',
+                html: `
+                    <div class="text-left">
+                        <p class="text-gray-600 mb-2">You are about to delete the category:</p>
+                        <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                            <p class="font-semibold text-gray-900 dark:text-white">${categoryName}</p>
+                        </div>
+                        <p class="text-red-600 dark:text-red-400 text-sm mt-3">
+                            <strong>Warning:</strong> This action cannot be undone. Make sure no units are assigned to this category before deleting.
+                        </p>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Delete Category',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Deleting Category...',
+                        text: 'Please wait while we remove the category',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-gray-900',
+                            content: 'text-gray-600'
+                        }
+                    });
+
+                    // Submit the form
+                    document.getElementById(`delete-form-${categoryId}`).submit();
+                }
+            });
+        }
+
+        function showCannotDeleteAlert(categoryName, unitCount) {
+            Swal.fire({
+                title: 'Cannot Delete Category',
+                html: `
+                    <div class="text-left">
+                        <p class="text-gray-600 mb-2">The category "<strong>${categoryName}</strong>" cannot be deleted because:</p>
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3 rounded-lg">
+                            <p class="text-yellow-800 dark:text-yellow-200">
+                                It currently has <strong>${unitCount} unit(s)</strong> assigned to it.
+                            </p>
+                        </div>
+                        <p class="text-blue-600 dark:text-blue-400 text-sm mt-3">
+                            <strong>Suggestion:</strong> First remove or reassign all units from this category, then try deleting again.
+                        </p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonColor: '#3B82F6',
+                confirmButtonText: 'Understood',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            });
+        }
+
+        // Show alerts for session flash messages
+        @if(session('success'))
+            Swal.fire({
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-green-800',
+                    content: 'text-green-600'
+                }
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                icon: 'error',
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'OK',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-red-800',
+                    content: 'text-red-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            });
+        @endif
+    </script>
+    @endpush
+</x-layouts.admin>
