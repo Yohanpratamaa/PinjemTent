@@ -39,6 +39,19 @@
                     </flux:navlist.item> --}}
                 </flux:navlist.group>
 
+                <flux:navlist.group :heading="__('Notifications')" class="grid">
+                    <flux:navlist.item icon="bell" :href="route('admin.notifications.index')" :current="request()->routeIs('admin.notifications.*')" wire:navigate>
+                        <div class="flex items-center justify-between w-full">
+                            <span>{{ __('Return Requests') }}</span>
+                            @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
+                                <span class="bg-red-500 text-white text-xs rounded-full h-5 min-w-[20px] flex items-center justify-center px-1 ml-2">
+                                    {{ $unreadNotificationsCount }}
+                                </span>
+                            @endif
+                        </div>
+                    </flux:navlist.item>
+                </flux:navlist.group>
+
                 <flux:navlist.group :heading="__('User Management')" class="grid">
                     <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
                         {{ __('Users') }}

@@ -37,6 +37,18 @@
                             </flux:button>
                         </form>
                     @endif
+
+                    @if($rental->status === 'dipinjam')
+                        @if($returnInfo['can_request'])
+                            <flux:button type="button" variant="primary" size="sm" icon="arrow-uturn-left" onclick="showReturnRequestModal()">
+                                Ajukan Pengembalian
+                            </flux:button>
+                        @elseif($rental->return_status === 'requested')
+                            <flux:button variant="outline" size="sm" disabled>
+                                Menunggu Persetujuan
+                            </flux:button>
+                        @endif
+                    @endif
                 </div>
             </div>
 
@@ -89,6 +101,53 @@
                     <span class="ml-2 text-sm opacity-75">{{ $config['message'] }}</span>
                 </div>
             </div>
+
+            <!-- Return Status Information -->
+            @if($rental->status === 'dipinjam')
+                <div class="mb-6">
+                    @if($returnInfo['can_request'])
+                        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-green-800 dark:text-green-200">Siap untuk Pengembalian</h4>
+                                    <p class="text-sm text-green-700 dark:text-green-300 mt-1">{{ $returnInfo['status_info'] }}</p>
+                                    <p class="text-xs text-green-600 dark:text-green-400 mt-1">Anda dapat mengajukan pengembalian sekarang</p>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($rental->return_status === 'requested')
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-blue-800 dark:text-blue-200">Menunggu Persetujuan</h4>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">{{ $returnInfo['status_info'] }}</p>
+                                    @if($rental->return_message)
+                                        <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">Pesan: "{{ $rental->return_message }}"</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-amber-800 dark:text-amber-200">{{ $returnInfo['reason'] }}</h4>
+                                    <p class="text-sm text-amber-700 dark:text-amber-300 mt-1">{{ $returnInfo['status_info'] }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -360,6 +419,89 @@
                     document.getElementById('cancelRentalForm').submit();
                 }
             });
+        }
+
+        function showReturnRequestModal() {
+            Swal.fire({
+                title: 'Ajukan Pengembalian',
+                html: `
+                    <div class="text-left">
+                        <p class="text-gray-600 mb-4">Anda akan mengajukan pengembalian untuk {{ $rental->unit->nama_unit }}.</p>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Pesan (Opsional)</label>
+                            <textarea
+                                id="returnMessage"
+                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                rows="3"
+                                placeholder="Tuliskan pesan atau catatan untuk admin..."
+                                maxlength="500"
+                            ></textarea>
+                            <small class="text-gray-500">Maksimal 500 karakter</small>
+                        </div>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3B82F6',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Ajukan Pengembalian',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                },
+                preConfirm: () => {
+                    const message = document.getElementById('returnMessage').value;
+                    return message;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitReturnRequest(result.value);
+                }
+            });
+        }
+
+        function submitReturnRequest(message) {
+            // Show loading
+            Swal.fire({
+                title: 'Mengirim Permintaan...',
+                text: 'Sedang mengirim permintaan pengembalian ke admin',
+                icon: 'info',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600'
+                }
+            });
+
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route('user.rental-history.request-return', $rental->id) }}';
+
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+            form.appendChild(csrfToken);
+
+            if (message) {
+                const messageInput = document.createElement('input');
+                messageInput.type = 'hidden';
+                messageInput.name = 'return_message';
+                messageInput.value = message;
+                form.appendChild(messageInput);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
         }
 
         // Show alerts for session flash messages

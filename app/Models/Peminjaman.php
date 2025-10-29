@@ -32,6 +32,11 @@ class Peminjaman extends Model
         'tanggal_kembali_rencana',
         'tanggal_kembali_aktual',
         'status',
+        'return_status',
+        'return_requested_at',
+        'return_message',
+        'approved_return_at',
+        'approved_by',
         'harga_sewa_total',
         'denda_total',
         'total_bayar',
@@ -44,6 +49,8 @@ class Peminjaman extends Model
         'tanggal_pinjam' => 'date',
         'tanggal_kembali_rencana' => 'date',
         'tanggal_kembali_aktual' => 'date',
+        'return_requested_at' => 'datetime',
+        'approved_return_at' => 'datetime',
         'harga_sewa_total' => 'decimal:2',
         'denda_total' => 'decimal:2',
         'total_bayar' => 'decimal:2'
@@ -63,6 +70,22 @@ class Peminjaman extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    /**
+     * Relasi dengan admin yang menyetujui pengembalian
+     */
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Relasi dengan notifications
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 
     /**
@@ -100,6 +123,75 @@ class Peminjaman extends Model
     {
         return $this->status === 'dipinjam' &&
                $this->tanggal_kembali_rencana < now();
+    }
+
+    /**
+     * Accessor untuk mengecek apakah sudah jatuh tempo dan bisa request return
+     */
+    public function getCanRequestReturnAttribute(): bool
+    {
+        // Bisa request return jika:
+        // 1. Status adalah 'dipinjam'
+        // 2. Belum pernah request return atau request sebelumnya ditolak
+        // 3. Sudah mencapai atau melewati tanggal jatuh tempo (tanggal_kembali_rencana)
+        return $this->status === 'dipinjam' &&
+               in_array($this->return_status, ['not_requested', 'rejected']) &&
+               now()->startOfDay() >= $this->tanggal_kembali_rencana->startOfDay();
+    }
+
+    /**
+     * Accessor untuk mengecek apakah sedang menunggu persetujuan return
+     */
+    public function getIsPendingReturnAttribute(): bool
+    {
+        return $this->return_status === 'requested';
+    }
+
+    /**
+     * Method untuk request pengembalian
+     */
+    public function requestReturn($message = null): bool
+    {
+        if (!$this->can_request_return) {
+            return false;
+        }
+
+        $this->update([
+            'return_status' => 'requested',
+            'return_requested_at' => now(),
+            'return_message' => $message
+        ]);
+
+        // Create notification for admin
+        Notification::createReturnRequest($this, $message);
+
+        return true;
+    }
+
+    /**
+     * Method untuk approve pengembalian oleh admin
+     */
+    public function approveReturn($adminId): bool
+    {
+        if ($this->return_status !== 'requested') {
+            return false;
+        }
+
+        $this->update([
+            'status' => 'dikembalikan',
+            'return_status' => 'approved',
+            'approved_return_at' => now(),
+            'approved_by' => $adminId,
+            'tanggal_kembali_aktual' => now()
+        ]);
+
+        // Return stock to unit
+        $this->unit->increment('stok', $this->jumlah);
+
+        // Create notification for user
+        Notification::createReturnApproved($this);
+
+        return true;
     }
 
     /**

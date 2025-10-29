@@ -63,6 +63,15 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->name('admin.')->group(f
     // Rental Management
     Route::resource('peminjamans', \App\Http\Controllers\Admin\PeminjamanController::class);
     Route::put('peminjamans/{peminjaman}/return', [\App\Http\Controllers\Admin\PeminjamanController::class, 'returnRental'])->name('peminjamans.return');
+
+    // Notification Management
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('index');
+        Route::get('/{notification}', [\App\Http\Controllers\Admin\NotificationController::class, 'show'])->name('show');
+        Route::post('/{notification}/approve', [\App\Http\Controllers\Admin\NotificationController::class, 'approve'])->name('approve');
+        Route::post('/{notification}/reject', [\App\Http\Controllers\Admin\NotificationController::class, 'reject'])->name('reject');
+        Route::put('/{notification}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('mark-as-read');
+    });
 });
 
 // User Routes
@@ -80,6 +89,7 @@ Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
         Route::get('/', [\App\Http\Controllers\User\RentalHistoryController::class, 'index'])->name('index');
         Route::get('/{rental}', [\App\Http\Controllers\User\RentalHistoryController::class, 'show'])->name('show');
         Route::patch('/{rental}/cancel', [\App\Http\Controllers\User\RentalHistoryController::class, 'cancel'])->name('cancel');
+        Route::post('/{rental}/request-return', [\App\Http\Controllers\User\RentalHistoryController::class, 'requestReturn'])->name('request-return');
     });
 
     // Cart routes

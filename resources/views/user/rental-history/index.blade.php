@@ -217,6 +217,14 @@
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$displayStatus] ?? 'bg-gray-100 text-gray-800' }}">
                                                 {{ $displayText }}
                                             </span>
+
+                                            <!-- Return status indicator -->
+                                            @if($rental->status === 'dipinjam' && $rental->return_status === 'requested')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 ml-1">
+                                                    Pengembalian Diajukan
+                                                </span>
+                                            @endif
+
                                             @if($isLate)
                                                 @php
                                                     $lateDays = now()->diffInDays($rental->tanggal_kembali_rencana);
