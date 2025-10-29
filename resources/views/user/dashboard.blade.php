@@ -154,13 +154,40 @@
                                         @endif
                                     </div>
 
-                                    <!-- Action -->
-                                    <a
-                                        href="{{ route('user.tents.show', $tent) }}"
-                                        class="w-full inline-flex items-center justify-center px-4 py-2 text-sm bg-green-50 text-green-600 hover:bg-green-600 hover:text-white font-medium rounded-lg transition-all duration-200"
-                                    >
-                                        Lihat Detail
-                                    </a>
+                                    <!-- Actions -->
+                                    <div class="flex gap-2">
+                                        @if($tent->available_stock > 0)
+                                            <button
+                                                onclick="addToCartDirectly({{ $tent->id }}, '{{ addslashes($tent->nama_unit) }}', {{ $tent->harga_sewa_per_hari }}, {{ $tent->available_stock }})"
+                                                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-200"
+                                            >
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005 16h12M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"/>
+                                                </svg>
+                                                Keranjang
+                                            </button>
+                                        @else
+                                            <button
+                                                disabled
+                                                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm bg-gray-300 text-gray-500 font-medium rounded-lg cursor-not-allowed"
+                                            >
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                                Stok Habis
+                                            </button>
+                                        @endif
+
+                                        <a
+                                            href="{{ route('user.tents.show', $tent) }}"
+                                            class="inline-flex items-center justify-center px-3 py-2 text-sm border border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-medium rounded-lg transition-all duration-200"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </a>
+                                    </div>
                                 </div>
 
                                 <!-- Popular Badge -->
@@ -429,4 +456,220 @@
             </div>
         </div>
     </div>
+
+    <!-- Enhanced Success/Error Toast -->
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden transform transition-all duration-300">
+        <div id="toastContent" class="px-6 py-4 rounded-xl shadow-2xl text-white font-semibold flex items-center space-x-3 min-w-[300px]">
+            <!-- Icon will be added dynamically -->
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        // Function to add item directly to cart without modal
+        function addToCartDirectly(unitId, unitName, unitPrice, availableStock) {
+            console.log('Adding to cart directly for unit:', unitId);
+
+            // Create data object for cart addition
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const requestData = {
+                unit_id: unitId,
+                quantity: 1, // Default quantity
+                tanggal_mulai: today.toISOString().split('T')[0],
+                tanggal_selesai: tomorrow.toISOString().split('T')[0],
+                notes: '' // Empty notes
+            };
+
+            console.log('Request data:', requestData);
+
+            // Show loading notification
+            showToast('Menambahkan ke keranjang...', 'loading');
+
+            fetch('{{ route('user.cart.store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                // Hide loading toast
+                hideToast();
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response');
+                }
+
+                return response.json().then(data => {
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Terjadi kesalahan pada server');
+                    }
+                    return data;
+                });
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    showToastWithAction(data.message, 'success', 'Lihat Keranjang', '{{ route('user.cart.index') }}');
+                    updateCartCount();
+                } else {
+                    showToast(data.message || 'Terjadi kesalahan', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                hideToast(); // Hide loading toast on error
+                showToast(error.message || 'Terjadi kesalahan. Silakan coba lagi.', 'error');
+            });
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const toastContent = document.getElementById('toastContent');
+
+            let icon = '';
+            let className = '';
+
+            if (type === 'success') {
+                icon = `
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                `;
+                className = 'px-6 py-4 rounded-xl shadow-2xl text-white font-semibold bg-gradient-to-r from-green-500 to-emerald-500 border border-green-300 flex items-center space-x-3 min-w-[300px]';
+            } else if (type === 'loading') {
+                icon = `
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </div>
+                `;
+                className = 'px-6 py-4 rounded-xl shadow-2xl text-white font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 border border-blue-300 flex items-center space-x-3 min-w-[300px]';
+            } else {
+                icon = `
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                `;
+                className = 'px-6 py-4 rounded-xl shadow-2xl text-white font-semibold bg-gradient-to-r from-red-500 to-pink-500 border border-red-300 flex items-center space-x-3 min-w-[300px]';
+            }
+
+            toastContent.className = className;
+            toastContent.innerHTML = `${icon}<span>${message}</span>`;
+
+            toast.classList.remove('hidden');
+
+            // Add animation
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+                toast.style.opacity = '1';
+                toast.style.transition = 'all 0.3s ease-out';
+            }, 10);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 5000);
+        }
+
+        function showToastWithAction(message, type, actionText, actionUrl) {
+            const toast = document.getElementById('toast');
+            const toastContent = document.getElementById('toastContent');
+
+            let icon = '';
+            let className = '';
+
+            if (type === 'success') {
+                icon = `
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                `;
+                className = 'px-6 py-4 rounded-xl shadow-2xl text-white font-semibold bg-gradient-to-r from-green-500 to-emerald-500 border border-green-300 flex items-center justify-between space-x-3 min-w-[350px]';
+            }
+
+            toastContent.className = className;
+            toastContent.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    ${icon}
+                    <span>${message}</span>
+                </div>
+                <a href="${actionUrl}" class="ml-4 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors duration-200">
+                    ${actionText}
+                </a>
+            `;
+
+            toast.classList.remove('hidden');
+
+            // Add animation
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+                toast.style.opacity = '1';
+                toast.style.transition = 'all 0.3s ease-out';
+            }, 10);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 7000); // Extended time for action toast
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            if (!toast.classList.contains('hidden')) {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function updateCartCount() {
+            console.log('Updating cart count...');
+            fetch('{{ route('user.cart.count') }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Update cart count in sidebar if exists
+                    if (window.updateCartCount && typeof window.updateCartCount === 'function') {
+                        window.updateCartCount();
+                    }
+                })
+                .catch(error => console.error('Error updating cart count:', error));
+        }
+
+        // Event listeners for page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard loaded, updating cart count...');
+            updateCartCount();
+        });
+    </script>
+    @endpush
 </x-layouts.app>
