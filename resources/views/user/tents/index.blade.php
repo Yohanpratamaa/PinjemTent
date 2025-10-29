@@ -351,39 +351,50 @@
         function addToCartDirectly(unitId, unitName, unitPrice, availableStock) {
             console.log('Adding to cart directly for unit:', unitId);
 
-            // Create FormData with default values
-            const formData = new FormData();
-
-            // Set default values
+            // Create data object instead of FormData for better compatibility
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
 
-            formData.append('unit_id', unitId);
-            formData.append('quantity', 1); // Default quantity
-            formData.append('tanggal_mulai', today.toISOString().split('T')[0]);
-            formData.append('tanggal_selesai', tomorrow.toISOString().split('T')[0]);
-            formData.append('notes', ''); // Empty notes
+            const requestData = {
+                unit_id: unitId,
+                quantity: 1, // Default quantity
+                tanggal_mulai: today.toISOString().split('T')[0],
+                tanggal_selesai: tomorrow.toISOString().split('T')[0],
+                notes: '' // Empty notes
+            };
+
+            console.log('Request data:', requestData);
 
             // Show loading notification
             const loadingToastId = showToast('Menambahkan ke keranjang...', 'loading');
 
             fetch('{{ route('user.cart.store') }}', {
                 method: 'POST',
-                body: formData,
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify(requestData)
             })
             .then(response => {
                 console.log('Response status:', response.status);
                 // Hide loading toast
                 hideToast();
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response');
                 }
-                return response.json();
+
+                return response.json().then(data => {
+                    if (!response.ok) {
+                        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                    }
+                    return data;
+                });
             })
             .then(data => {
                 console.log('Response data:', data);
@@ -391,13 +402,13 @@
                     showToastWithAction(data.message, 'success', 'Lihat Keranjang', '{{ route('user.cart.index') }}');
                     updateCartCount();
                 } else {
-                    showToast(data.message, 'error');
+                    showToast(data.message || 'Terjadi kesalahan', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 hideToast(); // Hide loading toast on error
-                showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
+                showToast(error.message || 'Terjadi kesalahan. Silakan coba lagi.', 'error');
             });
         }
 
