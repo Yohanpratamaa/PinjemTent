@@ -382,7 +382,7 @@
         function confirmCancelRental() {
             Swal.fire({
                 title: 'Batalkan Penyewaan?',
-                text: 'Apakah Anda yakin ingin membatalkan penyewaan ini? Anda dapat membatalkan sewaktu-waktu sebelum proses penyewaan selesai.',
+                text: 'Apakah Anda yakin ingin membatalkan penyewaan ini? Tindakan ini tidak dapat dibatalkan.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#EF4444',

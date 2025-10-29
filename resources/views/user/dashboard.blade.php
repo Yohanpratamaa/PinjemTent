@@ -35,7 +35,7 @@
         </div>
 
         <!-- Quick Access Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <a href="{{ route('user.tents.index') }}" class="group relative overflow-hidden bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="flex flex-col items-center text-center">
                     <div class="w-12 h-12 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
@@ -43,7 +43,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Sewa Perlengkapan</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Sewa Tenda</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Gear lengkap</p>
                 </div>
             </a>
@@ -60,7 +60,7 @@
                 </div>
             </a>
 
-            <a href="{{ route("user.rental-history.index") }}" class="group relative overflow-hidden bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <button class="group relative overflow-hidden bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="flex flex-col items-center text-center">
                     <div class="w-12 h-12 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                         <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,9 +70,9 @@
                     <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Riwayat</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Aktivitas</p>
                 </div>
-            </a>
+            </button>
 
-            {{-- <button class="group relative overflow-hidden bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <button class="group relative overflow-hidden bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="flex flex-col items-center text-center">
                     <div class="w-12 h-12 bg-orange-100 dark:bg-orange-800 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                         <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@
                     <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Bantuan</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Support</p>
                 </div>
-            </button> --}}
+            </button>
         </div>
 
         <!-- Featured Tents Section -->
