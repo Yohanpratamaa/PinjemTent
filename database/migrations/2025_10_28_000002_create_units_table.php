@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('merk')->nullable(); // Brand/merk unit
             $table->string('kapasitas')->nullable(); // Kapasitas unit (misal: 4 orang, 6 orang)
             $table->text('deskripsi')->nullable(); // Deskripsi lengkap unit
+            $table->string('foto')->nullable(); // Foto unit
 
             // Status and stock management
             $table->enum('status', ['tersedia', 'dipinjam', 'maintenance'])->default('tersedia');

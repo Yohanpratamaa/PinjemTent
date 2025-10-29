@@ -17,6 +17,7 @@ return new class extends Migration
             // Foreign keys
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('unit_id')->constrained('units')->onDelete('cascade');
+            $table->integer('jumlah')->default(1)->comment('Jumlah unit yang dipinjam'); // Dari add_jumlah migration
 
             // Rental information
             $table->string('kode_peminjaman')->unique(); // Kode unik peminjaman
@@ -28,8 +29,24 @@ return new class extends Migration
             $table->enum('status', ['pending', 'dipinjam', 'dikembalikan', 'terlambat', 'dibatalkan'])
                   ->default('pending');
 
+            // Rental approval fields (dari add_rental_approval_fields migration)
+            $table->enum('rental_status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->timestamp('rental_approved_at')->nullable();
+            $table->unsignedBigInteger('rental_approved_by')->nullable();
+            $table->text('rental_rejection_reason')->nullable();
+
+            // Return request fields (dari add_return_request_fields migration)
+            $table->enum('return_status', ['not_requested', 'requested', 'approved', 'rejected'])->default('not_requested');
+            $table->timestamp('return_requested_at')->nullable();
+            $table->text('return_message')->nullable();
+            $table->timestamp('approved_return_at')->nullable();
+            $table->unsignedBigInteger('approved_by')->nullable();
+
             // Financial information
             $table->decimal('harga_sewa_total', 12, 2); // Total harga sewa
+            $table->decimal('denda', 10, 2)->default(0); // Denda dari add_denda_fields migration
+            $table->integer('hari_terlambat')->default(0); // Hari terlambat dari add_denda_fields migration
+            $table->text('keterangan_denda')->nullable(); // Keterangan denda dari add_denda_fields migration
             $table->decimal('denda_total', 12, 2)->default(0); // Total denda
             $table->decimal('total_bayar', 12, 2); // Total yang harus dibayar
 
@@ -39,6 +56,10 @@ return new class extends Migration
 
             $table->timestamps();
 
+            // Foreign key constraints
+            $table->foreign('rental_approved_by')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
+
             // Indexes for better performance
             $table->index('kode_peminjaman');
             $table->index('status');
@@ -46,6 +67,7 @@ return new class extends Migration
             $table->index('tanggal_kembali_rencana');
             $table->index(['user_id', 'status']);
             $table->index(['unit_id', 'status']);
+            $table->index(['unit_id', 'status', 'jumlah']); // Index tambahan dari add_jumlah migration
         });
     }
 
