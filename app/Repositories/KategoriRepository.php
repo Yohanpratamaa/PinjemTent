@@ -53,14 +53,15 @@ class KategoriRepository
     /**
      * Mengupdate kategori
      */
-    public function update(int $id, array $data): bool
+    public function update(int $id, array $data): ?Kategori
     {
         $kategori = $this->model->find($id);
         if (!$kategori) {
-            return false;
+            return null;
         }
 
-        return $kategori->update($data);
+        $kategori->update($data);
+        return $kategori->fresh();
     }
 
     /**

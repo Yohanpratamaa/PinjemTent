@@ -49,7 +49,7 @@ class KategoriService
 
         return $this->kategoriRepository->create([
             'nama_kategori' => $data['nama_kategori'],
-            'deskripsi' => $data['deskripsi'] ?? null
+            'deskripsi_kategori' => $data['deskripsi_kategori'] ?? null
         ]);
     }
 
@@ -68,12 +68,16 @@ class KategoriService
             throw new Exception('Nama kategori sudah digunakan');
         }
 
-        $this->kategoriRepository->update($id, [
+        $updatedKategori = $this->kategoriRepository->update($id, [
             'nama_kategori' => $data['nama_kategori'],
-            'deskripsi' => $data['deskripsi'] ?? null
+            'deskripsi_kategori' => $data['deskripsi_kategori'] ?? null
         ]);
 
-        return $this->kategoriRepository->findById($id);
+        if (!$updatedKategori) {
+            throw new Exception('Gagal mengupdate kategori');
+        }
+
+        return $updatedKategori;
     }
 
     /**

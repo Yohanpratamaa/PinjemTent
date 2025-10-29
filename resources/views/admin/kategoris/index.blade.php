@@ -59,7 +59,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Total Categories</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $kategoris->total() }}</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total_kategoris'] ?? 0 }}</p>
                     </div>
                 </div>
             </div>

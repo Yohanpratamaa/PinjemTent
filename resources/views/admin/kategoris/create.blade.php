@@ -49,12 +49,12 @@
                             <flux:field>
                                 <flux:label>Description</flux:label>
                                 <flux:textarea
-                                    name="deskripsi"
+                                    name="deskripsi_kategori"
                                     placeholder="Describe what types of items belong to this category..."
                                     rows="4"
-                                >{{ old('deskripsi') }}</flux:textarea>
+                                >{{ old('deskripsi_kategori') }}</flux:textarea>
                                 <flux:description>Optional description to help users understand this category</flux:description>
-                                @error('deskripsi')
+                                @error('deskripsi_kategori')
                                     <flux:error>{{ $message }}</flux:error>
                                 @enderror
                             </flux:field>
