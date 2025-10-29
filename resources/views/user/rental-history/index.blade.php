@@ -240,13 +240,12 @@
                                             </flux:button>
 
                                             @if(in_array($rental->status, ['pending', 'disetujui']))
-                                                <form action="{{ route('user.rental-history.cancel', $rental->id) }}"
+                                                <form id="cancelRentalForm_{{ $rental->id }}" action="{{ route('user.rental-history.cancel', $rental->id) }}"
                                                       method="POST"
-                                                      onsubmit="return confirm('Apakah Anda yakin ingin membatalkan penyewaan ini?')"
                                                       class="inline">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <flux:button type="submit" variant="danger" size="sm">
+                                                    <flux:button type="button" variant="danger" size="sm" onclick="confirmCancelRental({{ $rental->id }})">
                                                         Batal
                                                     </flux:button>
                                                 </form>
@@ -295,4 +294,82 @@
             @endif
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function confirmCancelRental(rentalId) {
+            Swal.fire({
+                title: 'Batalkan Penyewaan?',
+                text: 'Apakah Anda yakin ingin membatalkan penyewaan ini? Tindakan ini tidak dapat dibatalkan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Ya, Batalkan!',
+                cancelButtonText: 'Tidak',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-gray-900',
+                    content: 'text-gray-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg',
+                    cancelButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Membatalkan...',
+                        text: 'Sedang memproses pembatalan penyewaan',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'border-0 shadow-2xl',
+                            title: 'text-lg font-semibold text-gray-900',
+                            content: 'text-gray-600'
+                        }
+                    });
+
+                    // Submit the specific form
+                    document.getElementById('cancelRentalForm_' + rentalId).submit();
+                }
+            });
+        }
+
+        // Show alerts for session flash messages
+        @if(session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: '{{ session('success') }}',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-green-800',
+                    content: 'text-green-600'
+                }
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                title: 'Gagal!',
+                text: '{{ session('error') }}',
+                icon: 'error',
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'OK',
+                customClass: {
+                    popup: 'border-0 shadow-2xl',
+                    title: 'text-lg font-semibold text-red-800',
+                    content: 'text-red-600',
+                    confirmButton: 'font-medium px-4 py-2 rounded-lg'
+                }
+            });
+        @endif
+    </script>
+    @endpush
 </x-layouts.app>
