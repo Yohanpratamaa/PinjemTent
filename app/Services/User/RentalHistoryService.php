@@ -116,19 +116,13 @@ class RentalHistoryService
             ];
         }
 
-        // Check if within cancellation period (e.g., 24 hours before rental start)
-        $rentalStart = Carbon::parse((string)$rental->tanggal_pinjam);
-        $now = Carbon::now();
-
-        if ($rentalStart->diffInHours($now) < 24) {
-            return [
-                'success' => false,
-                'message' => 'Penyewaan tidak dapat dibatalkan kurang dari 24 jam sebelum waktu mulai.'
-            ];
-        }
+        // Pembatalan dapat dilakukan sewaktu-waktu untuk status pending dan disetujui
 
         try {
             DB::beginTransaction();
+
+            // Store original status for stock management
+            $originalStatus = $rental->status;
 
             // Update rental status
             $rental->update([
@@ -136,8 +130,8 @@ class RentalHistoryService
                 'keterangan' => 'Dibatalkan oleh user pada ' . now()->format('d/m/Y H:i')
             ]);
 
-            // Return stock if it was allocated
-            if ($rental->status === 'disetujui') {
+            // Return stock if it was allocated (for approved rentals)
+            if ($originalStatus === 'disetujui') {
                 $unit = $rental->unit;
                 $unit->increment('stok', $rental->jumlah);
             }
