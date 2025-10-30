@@ -3,13 +3,8 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\UnitController;
-use App\Http\Controllers\Admin\KategoriController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\PeminjamanController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\TentController as UserTentController;
-use App\Http\Controllers\User\RentalHistoryController;
 use App\Http\Controllers\User\CartController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -107,50 +102,6 @@ Route::middleware(['auth', 'isUser'])->prefix('user')->group(function () {
     });
 });
 
-// Test route for debugging
-Route::get('/test-cart', function () {
-    return view('test-cart');
-})->middleware('auth');
-
-Route::get('/manual-cart-test', function () {
-    return view('manual-cart-test');
-})->middleware('auth');
-
-Route::get('/simple-cart-test', function () {
-    return view('simple-cart-test');
-})->middleware('auth');
-
-// Debug route for notifications
-Route::get('/debug-notifications', function () {
-    $notifications = \App\Models\Notification::with(['user', 'peminjaman.unit'])
-        ->where('is_admin_notification', true)
-        ->where('type', 'rental_request')
-        ->limit(5)
-        ->get();
-
-    $debug_data = [];
-    foreach ($notifications as $notification) {
-        $debug_data[] = [
-            'id' => $notification->id,
-            'type' => $notification->type,
-            'peminjaman_id' => $notification->peminjaman_id,
-            'tanggal_pinjam' => $notification->peminjaman?->tanggal_pinjam,
-            'tanggal_kembali_rencana' => $notification->peminjaman?->tanggal_kembali_rencana,
-            'rental_status' => $notification->peminjaman?->rental_status,
-            'harga_sewa_total' => $notification->peminjaman?->harga_sewa_total,
-            'unit_name' => $notification->peminjaman?->unit?->nama_unit,
-            'user_name' => $notification->user?->name,
-            'created_at' => $notification->created_at,
-        ];
-    }
-
-    return response()->json($debug_data);
-})->middleware(['auth', 'isAdmin']);
-
-Route::get('/test-cart-update', function () {
-    return view('test_cart_update');
-})->middleware('auth');
-
 // Legacy dashboard route (redirect based on role)
 Route::get('/dashboard', function () {
     $user = Auth::user();
@@ -166,115 +117,57 @@ Route::get('/dashboard', function () {
     return redirect('/');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Debug route - remove after testing
-Route::get('/debug-auth', function () {
-    if (!Auth::check()) {
-        return response()->json(['status' => 'not_logged_in']);
-    }
+// Debug Routes (Only available in development)
+if (app()->environment(['local', 'development'])) {
+    Route::prefix('debug')->middleware('auth')->group(function () {
+        // Authentication debug
+        Route::get('/auth', function () {
+            if (!Auth::check()) {
+                return response()->json(['status' => 'not_logged_in']);
+            }
 
-    $user = Auth::user();
-    return response()->json([
-        'status' => 'logged_in',
-        'user_id' => $user->id,
-        'name' => $user->name,
-        'email' => $user->email,
-        'role' => $user->role,
-        'is_admin' => $user->role === 'admin',
-    ]);
-})->middleware('web');
+            $user = Auth::user();
+            return response()->json([
+                'status' => 'logged_in',
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'is_admin' => $user->role === 'admin',
+            ]);
+        })->name('debug.auth');
 
-// Debug route untuk mengecek data yang muncul di user tents
-Route::get('/debug-user-tents', function () {
-    $query = \App\Models\Unit::with('kategoris')->tersedia();
-    $tents = $query->orderBy('nama_unit')->get();
-    $kategoris = \App\Models\Kategori::orderBy('nama_kategori')->get();
+        // Notifications debug (Admin only)
+        Route::get('/notifications', function () {
+            $notifications = \App\Models\Notification::with(['user', 'peminjaman.unit'])
+                ->where('is_admin_notification', true)
+                ->where('type', 'rental_request')
+                ->limit(5)
+                ->get();
 
-    $debug_data = [
-        'total_units' => \App\Models\Unit::count(),
-        'total_available_units' => $tents->count(),
-        'total_categories' => $kategoris->count(),
-        'categories' => $kategoris->map(function($k) {
-            return [
-                'id' => $k->id,
-                'nama' => $k->nama_kategori,
-                'units_count' => $k->units()->count()
-            ];
-        }),
-        'units' => $tents->map(function($u) {
-            return [
-                'kode_unit' => $u->kode_unit,
-                'nama_unit' => $u->nama_unit,
-                'status' => $u->status,
-                'stok' => $u->stok,
-                'available_stock' => $u->available_stock,
-                'kategoris' => $u->kategoris->pluck('nama_kategori'),
-                'foto' => $u->foto,
-                'foto_url' => $u->foto_url
-            ];
-        })
-    ];
-
-    return response()->json($debug_data, 200, [], JSON_PRETTY_PRINT);
-})->middleware('auth');
-
-// Debug categories specifically
-Route::get('/debug-categories', function () {
-    $allCategories = \App\Models\Kategori::orderBy('nama_kategori')->get();
-    $categoriesWithUnits = \App\Models\Kategori::has('units')->orderBy('nama_kategori')->get();
-    $categoriesWithAvailableUnits = \App\Models\Kategori::whereHas('units', function($query) {
-        $query->where('status', 'tersedia')->where('stok', '>', 0);
-    })->orderBy('nama_kategori')->get();
-
-    return response()->json([
-        'all_categories' => [
-            'count' => $allCategories->count(),
-            'list' => $allCategories->map(function($k) {
-                return [
-                    'id' => $k->id,
-                    'nama' => $k->nama_kategori,
-                    'total_units' => $k->units()->count(),
-                    'available_units' => $k->units()->where('status', 'tersedia')->where('stok', '>', 0)->count()
+            $debug_data = [];
+            foreach ($notifications as $notification) {
+                $debug_data[] = [
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'peminjaman_id' => $notification->peminjaman_id,
+                    'tanggal_pinjam' => $notification->peminjaman?->tanggal_pinjam,
+                    'tanggal_kembali_rencana' => $notification->peminjaman?->tanggal_kembali_rencana,
+                    'rental_status' => $notification->peminjaman?->rental_status,
+                    'harga_sewa_total' => $notification->peminjaman?->harga_sewa_total,
+                    'unit_name' => $notification->peminjaman?->unit?->nama_unit,
+                    'user_name' => $notification->user?->name,
+                    'created_at' => $notification->created_at,
                 ];
-            })
-        ],
-        'categories_with_units' => [
-            'count' => $categoriesWithUnits->count(),
-            'list' => $categoriesWithUnits->pluck('nama_kategori')
-        ],
-        'categories_with_available_units' => [
-            'count' => $categoriesWithAvailableUnits->count(),
-            'list' => $categoriesWithAvailableUnits->pluck('nama_kategori')
-        ]
-    ], 200, [], JSON_PRETTY_PRINT);
-})->middleware('auth');
+            }
 
-// Test route untuk cek kategori dan unit secara detail
-Route::get('/debug-categories-detail', function () {
-    $allKategoris = \App\Models\Kategori::with('units')->orderBy('nama_kategori')->get();
+            return response()->json($debug_data);
+        })->middleware('isAdmin')->name('debug.notifications');
+    });
+}
 
-    $result = [];
-    foreach ($allKategoris as $kategori) {
-        $availableUnits = $kategori->units()->where('status', 'tersedia')->where('stok', '>', 0)->count();
-
-        $result[] = [
-            'id' => $kategori->id,
-            'nama_kategori' => $kategori->nama_kategori,
-            'total_units' => $kategori->units->count(),
-            'available_units' => $availableUnits,
-            'unit_codes' => $kategori->units->pluck('kode_unit')->toArray(),
-            'available_unit_codes' => $kategori->units()->where('status', 'tersedia')->where('stok', '>', 0)->pluck('kode_unit')->toArray()
-        ];
-    }
-
-    return response()->json([
-        'total_categories' => count($result),
-        'categories_detail' => $result,
-        'summary' => [
-            'categories_with_units' => collect($result)->where('total_units', '>', 0)->count(),
-            'categories_with_available_units' => collect($result)->where('available_units', '>', 0)->count(),
-        ]
-    ], 200, [], JSON_PRETTY_PRINT);
-})->middleware('auth');Route::middleware(['auth'])->group(function () {
+// User Settings Routes
+Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
