@@ -25,10 +25,10 @@
             class="w-12 h-12 text-center text-lg font-semibold"
         />
     @endfor
-    
+
     {{-- Hidden input to store the complete OTP value --}}
-    <input 
-        type="hidden" 
+    <input
+        type="hidden"
         name="{{ $name }}"
         @if($attributes->has('wire:model'))
             {{ $attributes->whereStartsWith('wire:') }}
@@ -42,19 +42,19 @@ function otpInput(digits) {
     return {
         inputs: Array(digits).fill(''),
         value: '',
-        
+
         init() {
             this.$watch('inputs', (newInputs) => {
                 this.value = newInputs.join('');
             });
         },
-        
+
         handleInput(event, index) {
             const value = event.target.value;
-            
+
             if (value && /^\d$/.test(value)) {
                 this.inputs[index] = value;
-                
+
                 // Move to next input if not last
                 if (index < digits - 1) {
                     this.$refs[`input${index + 1}`].focus();
@@ -65,7 +65,7 @@ function otpInput(digits) {
                 event.target.value = '';
             }
         },
-        
+
         handleKeydown(event, index) {
             // Handle backspace
             if (event.key === 'Backspace') {
@@ -85,16 +85,16 @@ function otpInput(digits) {
                 this.$refs[`input${index + 1}`].focus();
             }
         },
-        
+
         handlePaste(event) {
             event.preventDefault();
             const pastedData = event.clipboardData.getData('text');
             const numbers = pastedData.replace(/\D/g, '').slice(0, digits);
-            
+
             for (let i = 0; i < digits; i++) {
                 this.inputs[i] = numbers[i] || '';
             }
-            
+
             // Focus last filled input or first empty one
             const lastIndex = Math.min(numbers.length - 1, digits - 1);
             if (lastIndex >= 0) {

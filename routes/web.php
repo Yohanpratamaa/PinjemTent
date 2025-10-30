@@ -7,26 +7,62 @@ use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\TentController as UserTentController;
 use App\Http\Controllers\User\CartController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    // Jika user sudah login, redirect berdasarkan role
-    if (Auth::check()) {
-        $user = Auth::user();
+// Health check route for deployment
+Route::get('/health', function () {
+    try {
+        // Test database connection
+        DB::connection()->getPdo();
 
-        if ($user && $user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
-
-        if ($user && $user->role === 'user') {
-            return redirect()->route('user.dashboard');
-        }
+        return response()->json([
+            'status' => 'healthy',
+            'timestamp' => now(),
+            'app' => config('app.name'),
+            'version' => config('app.version', '1.0.0')
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'unhealthy',
+            'error' => $e->getMessage(),
+            'timestamp' => now()
+        ], 503);
     }
+});
 
-    // Jika belum login, redirect ke login
-    return redirect()->route('login');
+Route::get('/', function () {
+    // Health check untuk deployment
+    try {
+        // Test database connection
+        DB::connection()->getPdo();
+
+        // Jika user sudah login, redirect berdasarkan role
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            if ($user && $user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            if ($user && $user->role === 'user') {
+                return redirect()->route('user.dashboard');
+            }
+        }
+
+        // Jika belum login, redirect ke login
+        return redirect()->route('login');
+    } catch (Exception $e) {
+        // Jika ada error, return 503 untuk healthcheck
+        if (app()->environment('production')) {
+            abort(503, 'Service Unavailable');
+        }
+
+        // Di development, tampilkan error
+        throw $e;
+    }
 })->name('home');
 
 // Authentication Routes
