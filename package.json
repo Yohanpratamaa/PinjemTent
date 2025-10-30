@@ -3,7 +3,11 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "setup": "composer install --ignore-platform-reqs && npm install && npm run build",
+        "composer-dev": "composer install --optimize-autoloader --ignore-platform-reqs",
+        "composer-prod": "composer install --no-dev --optimize-autoloader --ignore-platform-reqs",
+        "fresh": "composer install --ignore-platform-reqs && php artisan migrate:fresh --seed"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.11",
