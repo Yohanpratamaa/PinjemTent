@@ -1,0 +1,52 @@
+# Dependencies
+
+node_modules/
+vendor/
+
+# Environment files
+
+.env
+.env.local
+.env.production
+.env.testing
+
+# Development files
+
+.git/
+.gitignore
+.editorconfig
+tests/
+.phpunit.result.cache
+phpunit.xml
+
+# Cache and logs
+
+storage/logs/_
+storage/framework/cache/_
+storage/framework/sessions/_
+storage/framework/views/_
+bootstrap/cache/\*
+
+# IDE files
+
+.vscode/
+.idea/
+_.swp
+_.swo
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# Documentation
+
+README.md
+README-BACKEND.md
+DEPLOYMENT-RAILWAY.md
+
+# Backup files
+
+_.backup
+_.bak
+\*.tmp

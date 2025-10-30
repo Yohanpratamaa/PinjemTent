@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Http\Responses\LoginResponse;
 use App\Http\Responses\RegisterResponse;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 
@@ -25,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+
         // Register view composers
         view()->composer(
             'components.layouts.app.sidebar',
