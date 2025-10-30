@@ -44,13 +44,19 @@ function validateUnitFormEnhanced(form) {
         }
     });
 
-    // Specific validation for unit code (must be unique format)
+    // Specific validation for unit code (flexible format)
     const kodeUnit = form.querySelector('input[name="kode_unit"]');
     if (kodeUnit && kodeUnit.value) {
-        const kodePattern = /^[A-Z0-9]{3,10}$/;
-        if (!kodePattern.test(kodeUnit.value)) {
-            errors.push("Unit code must be 3-10 uppercase letters/numbers");
+        const kodeValue = kodeUnit.value.trim();
+        // More flexible pattern allowing uppercase letters, numbers, and hyphens
+        const kodePattern = /^[A-Z0-9\-]{3,20}$/;
+        if (!kodePattern.test(kodeValue)) {
+            errors.push(
+                "Unit code must be 3-20 characters (uppercase letters, numbers, and hyphens only)"
+            );
             kodeUnit.classList.add("border-red-500");
+        } else {
+            kodeUnit.classList.remove("border-red-500");
         }
     }
 

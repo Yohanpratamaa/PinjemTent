@@ -59,17 +59,42 @@
                                         </a>
 
                                         @if(isset($sidebarKategoris) && $sidebarKategoris->count() > 0)
-                                            <!-- Categories -->
-                                            @foreach($sidebarKategoris as $kategori)
-                                                <a href="{{ route('user.tents.index', ['kategori' => $kategori->id]) }}"
-                                                   wire:navigate
-                                                   class="flex items-center px-6 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-all duration-200 group {{ request()->get('kategori') == $kategori->id ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-200' : '' }}">
-                                                    <svg class="w-3 h-3 text-emerald-500 mr-3 transition-all duration-200 group-hover:scale-110 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                                    </svg>
-                                                    <span class="transition-all duration-200 group-hover:translate-x-1">{{ $kategori->nama_kategori }}</span>
-                                                </a>
-                                            @endforeach
+                                            <!-- Categories Container with Sliding -->
+                                            <div class="relative">
+                                                @if($sidebarKategoris->count() > 8)
+                                                    <!-- Navigation Buttons (only show if more than 8 categories) -->
+                                                    <div class="flex justify-between items-center px-6 py-1 mb-2">
+                                                        <button id="slidePrev" class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                                            </svg>
+                                                        </button>
+                                                        <span id="slideIndicator" class="text-xs text-zinc-500 dark:text-zinc-400">1-8 dari {{ $sidebarKategoris->count() }}</span>
+                                                        <button id="slideNext" class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                @endif
+
+                                                <!-- Categories Slider Container -->
+                                                <div id="categoriesSlider" class="overflow-hidden">
+                                                    <div id="categoriesContainer" class="transition-transform duration-300 ease-in-out">
+                                                        @foreach($sidebarKategoris as $index => $kategori)
+                                                            <a href="{{ route('user.tents.index', ['kategori' => $kategori->id]) }}"
+                                                               wire:navigate
+                                                               data-index="{{ $index }}"
+                                                               class="category-item flex items-center px-6 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-all duration-200 group {{ request()->get('kategori') == $kategori->id ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-200' : '' }}">
+                                                                <svg class="w-3 h-3 text-emerald-500 mr-3 transition-all duration-200 group-hover:scale-110 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                                                </svg>
+                                                                <span class="transition-all duration-200 group-hover:translate-x-1">{{ $kategori->nama_kategori }}</span>
+                                                            </a>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            </div>
                                         @else
                                             <!-- No Categories State -->
                                             <div class="px-6 py-3 text-center">
@@ -83,11 +108,20 @@
 
                                     <!-- Footer Info -->
                                     <div class="px-6 py-2 border-t border-zinc-200 dark:border-zinc-600 bg-zinc-100/50 dark:bg-zinc-700/30">
-                                        <p class="text-xs text-zinc-500 dark:text-zinc-400 flex items-center space-x-1">
-                                            <svg class="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span>{{ isset($sidebarKategoris) ? $sidebarKategoris->count() : 0 }} kategori tersedia</span>
+                                        <p class="text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
+                                            <span class="flex items-center space-x-1">
+                                                <svg class="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                <span>{{ isset($sidebarKategoris) ? $sidebarKategoris->count() : 0 }} kategori</span>
+                                            </span>
+                                            {{-- @if(isset($sidebarKategoris) && $sidebarKategoris->count() > 8)
+                                                <span class="text-blue-500 flex items-center space-x-1">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16l13-8L7 4z"></path>
+                                                    </svg>
+                                                </span>
+                                            @endif --}}
                                         </p>
                                     </div>
                                 </div>
@@ -108,6 +142,76 @@
                                     arrow.style.transform = 'rotate(0deg)';
                                 }
                             }
+
+                            // Categories Slider Functionality
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const categoriesContainer = document.getElementById('categoriesContainer');
+                                const slidePrevBtn = document.getElementById('slidePrev');
+                                const slideNextBtn = document.getElementById('slideNext');
+                                const slideIndicator = document.getElementById('slideIndicator');
+                                const categoryItems = document.querySelectorAll('.category-item');
+
+                                if (!categoriesContainer || categoryItems.length <= 8) return;
+
+                                let currentIndex = 0;
+                                const itemsPerPage = 8;
+                                const totalPages = Math.ceil(categoryItems.length / itemsPerPage);
+
+                                // Hide items beyond the first 8
+                                function updateVisibility() {
+                                    categoryItems.forEach((item, index) => {
+                                        const startIndex = currentIndex * itemsPerPage;
+                                        const endIndex = startIndex + itemsPerPage;
+
+                                        if (index >= startIndex && index < endIndex) {
+                                            item.style.display = 'flex';
+                                        } else {
+                                            item.style.display = 'none';
+                                        }
+                                    });
+
+                                    // Update indicator
+                                    const startNum = (currentIndex * itemsPerPage) + 1;
+                                    const endNum = Math.min((currentIndex + 1) * itemsPerPage, categoryItems.length);
+                                    slideIndicator.textContent = `${startNum}-${endNum} dari ${categoryItems.length}`;
+
+                                    // Update button states
+                                    slidePrevBtn.disabled = currentIndex === 0;
+                                    slideNextBtn.disabled = currentIndex === totalPages - 1;
+                                }
+
+                                // Previous button click handler
+                                slidePrevBtn.addEventListener('click', function() {
+                                    if (currentIndex > 0) {
+                                        currentIndex--;
+                                        updateVisibility();
+                                    }
+                                });
+
+                                // Next button click handler
+                                slideNextBtn.addEventListener('click', function() {
+                                    if (currentIndex < totalPages - 1) {
+                                        currentIndex++;
+                                        updateVisibility();
+                                    }
+                                });
+
+                                // Initial setup
+                                updateVisibility();
+
+                                // Keyboard navigation
+                                document.addEventListener('keydown', function(e) {
+                                    if (e.target.closest('#accordion-content')) {
+                                        if (e.key === 'ArrowLeft' && !slidePrevBtn.disabled) {
+                                            e.preventDefault();
+                                            slidePrevBtn.click();
+                                        } else if (e.key === 'ArrowRight' && !slideNextBtn.disabled) {
+                                            e.preventDefault();
+                                            slideNextBtn.click();
+                                        }
+                                    }
+                                });
+                            });
                             </script>
 
                             <!-- Keranjang Belanja -->

@@ -35,6 +35,7 @@ class UpdateUnitStockRequest extends FormRequest
                 'required',
                 'string',
                 'max:20',
+                'regex:/^[A-Z0-9\-]{3,20}$/', // Allow uppercase letters, numbers, and hyphens
                 Rule::unique('units', 'kode_unit')->ignore($unit?->id)
             ],
             'nama_unit' => [
@@ -112,6 +113,7 @@ class UpdateUnitStockRequest extends FormRequest
         return [
             'kode_unit.required' => 'Kode unit wajib diisi',
             'kode_unit.unique' => 'Kode unit sudah digunakan',
+            'kode_unit.regex' => 'Kode unit harus berupa 3-20 karakter huruf besar, angka, dan tanda minus saja',
             'nama_unit.required' => 'Nama unit wajib diisi',
             'merk.max' => 'Merk maksimal 100 karakter',
             'kapasitas.max' => 'Kapasitas maksimal 100 karakter',

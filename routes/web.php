@@ -183,7 +183,98 @@ Route::get('/debug-auth', function () {
     ]);
 })->middleware('web');
 
-Route::middleware(['auth'])->group(function () {
+// Debug route untuk mengecek data yang muncul di user tents
+Route::get('/debug-user-tents', function () {
+    $query = \App\Models\Unit::with('kategoris')->tersedia();
+    $tents = $query->orderBy('nama_unit')->get();
+    $kategoris = \App\Models\Kategori::orderBy('nama_kategori')->get();
+
+    $debug_data = [
+        'total_units' => \App\Models\Unit::count(),
+        'total_available_units' => $tents->count(),
+        'total_categories' => $kategoris->count(),
+        'categories' => $kategoris->map(function($k) {
+            return [
+                'id' => $k->id,
+                'nama' => $k->nama_kategori,
+                'units_count' => $k->units()->count()
+            ];
+        }),
+        'units' => $tents->map(function($u) {
+            return [
+                'kode_unit' => $u->kode_unit,
+                'nama_unit' => $u->nama_unit,
+                'status' => $u->status,
+                'stok' => $u->stok,
+                'available_stock' => $u->available_stock,
+                'kategoris' => $u->kategoris->pluck('nama_kategori'),
+                'foto' => $u->foto,
+                'foto_url' => $u->foto_url
+            ];
+        })
+    ];
+
+    return response()->json($debug_data, 200, [], JSON_PRETTY_PRINT);
+})->middleware('auth');
+
+// Debug categories specifically
+Route::get('/debug-categories', function () {
+    $allCategories = \App\Models\Kategori::orderBy('nama_kategori')->get();
+    $categoriesWithUnits = \App\Models\Kategori::has('units')->orderBy('nama_kategori')->get();
+    $categoriesWithAvailableUnits = \App\Models\Kategori::whereHas('units', function($query) {
+        $query->where('status', 'tersedia')->where('stok', '>', 0);
+    })->orderBy('nama_kategori')->get();
+
+    return response()->json([
+        'all_categories' => [
+            'count' => $allCategories->count(),
+            'list' => $allCategories->map(function($k) {
+                return [
+                    'id' => $k->id,
+                    'nama' => $k->nama_kategori,
+                    'total_units' => $k->units()->count(),
+                    'available_units' => $k->units()->where('status', 'tersedia')->where('stok', '>', 0)->count()
+                ];
+            })
+        ],
+        'categories_with_units' => [
+            'count' => $categoriesWithUnits->count(),
+            'list' => $categoriesWithUnits->pluck('nama_kategori')
+        ],
+        'categories_with_available_units' => [
+            'count' => $categoriesWithAvailableUnits->count(),
+            'list' => $categoriesWithAvailableUnits->pluck('nama_kategori')
+        ]
+    ], 200, [], JSON_PRETTY_PRINT);
+})->middleware('auth');
+
+// Test route untuk cek kategori dan unit secara detail
+Route::get('/debug-categories-detail', function () {
+    $allKategoris = \App\Models\Kategori::with('units')->orderBy('nama_kategori')->get();
+
+    $result = [];
+    foreach ($allKategoris as $kategori) {
+        $availableUnits = $kategori->units()->where('status', 'tersedia')->where('stok', '>', 0)->count();
+
+        $result[] = [
+            'id' => $kategori->id,
+            'nama_kategori' => $kategori->nama_kategori,
+            'total_units' => $kategori->units->count(),
+            'available_units' => $availableUnits,
+            'unit_codes' => $kategori->units->pluck('kode_unit')->toArray(),
+            'available_unit_codes' => $kategori->units()->where('status', 'tersedia')->where('stok', '>', 0)->pluck('kode_unit')->toArray()
+        ];
+    }
+
+    return response()->json([
+        'total_categories' => count($result),
+        'categories_detail' => $result,
+        'summary' => [
+            'categories_with_units' => collect($result)->where('total_units', '>', 0)->count(),
+            'categories_with_available_units' => collect($result)->where('available_units', '>', 0)->count(),
+        ]
+    ], 200, [], JSON_PRETTY_PRINT);
+})->middleware('auth');Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');

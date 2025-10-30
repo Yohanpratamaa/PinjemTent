@@ -19,7 +19,22 @@ class SidebarComposer
                 ->orderBy('nama_kategori')
                 ->get();
 
+            // Debug logging
+            \Log::info('SidebarComposer: Loading categories for user', [
+                'user_id' => Auth::id(),
+                'categories_count' => $kategoris->count(),
+                'categories' => $kategoris->pluck('nama_kategori')->toArray()
+            ]);
+
             $view->with('sidebarKategoris', $kategoris);
+        } else {
+            // Debug for non-user roles
+            \Log::info('SidebarComposer: Not loading categories', [
+                'user_authenticated' => Auth::check(),
+                'user_role' => Auth::check() ? Auth::user()->role : 'guest'
+            ]);
+
+            $view->with('sidebarKategoris', collect([]));
         }
     }
 }

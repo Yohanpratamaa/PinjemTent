@@ -33,7 +33,15 @@ class TentController extends Controller
         }
 
         $tents = $query->orderBy('nama_unit')->paginate(12);
+
+        // Get all categories (not filtered)
         $kategoris = Kategori::orderBy('nama_kategori')->get();
+
+        // Debug: Log categories for troubleshooting
+        \Log::info('TentController: Total categories loaded for user', [
+            'count' => $kategoris->count(),
+            'categories' => $kategoris->pluck('nama_kategori')->toArray()
+        ]);
 
         return view('user.tents.index', compact('tents', 'kategoris', 'selectedKategori'));
     }
