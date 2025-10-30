@@ -7,7 +7,7 @@ echo "🚀 Preparing Laravel app for Railway deployment..."
 
 # 1. Install dependencies
 echo "📦 Installing Composer dependencies..."
-composer install --no-dev --optimize-autoloader --no-interaction
+composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
 # 2. Install Node dependencies and build assets
 echo "🏗️ Building frontend assets..."
