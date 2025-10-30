@@ -217,7 +217,7 @@
                             <!-- Keranjang Belanja -->
                             <a href="{{ route('user.cart.index') }}"
                                wire:navigate
-                               class="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 rounded-lg cursor-pointer transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 group {{ request()->routeIs('user.cart.*') ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100' : '' }}">
+                               class="cart-link flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 rounded-lg cursor-pointer transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 group {{ request()->routeIs('user.cart.*') ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100' : '' }}">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-4 h-4 text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-all duration-200 {{ request()->routeIs('user.cart.*') ? 'text-zinc-700 dark:text-zinc-300' : '' }}"
                                          fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,7 +228,7 @@
                                 </div>
 
                                 <!-- Cart Badge -->
-                                <span id="cartBadge" class="bg-red-500 text-white text-xs rounded-full h-5 min-w-[20px] items-center justify-center px-1" style="display: none;">
+                                <span id="cartBadge" class="bg-red-500 text-white text-xs rounded-full h-5 min-w-[20px] flex items-center justify-center px-1" style="display: none;">
                                     0
                                 </span>
                             </a>
@@ -358,32 +358,111 @@
 
         @auth
             @if(auth()->user()->role === 'user')
-                <script>
-                    // Update cart count on page load
-                    document.addEventListener('DOMContentLoaded', function() {
-                        updateCartCount();
-                    });
+                <!-- Cart Manager Script -->
+                <script src="{{ asset('js/cart-manager.js') }}"></script>
 
-                    function updateCartCount() {
-                        fetch('{{ route('user.cart.count') }}')
-                            .then(response => response.json())
-                            .then(data => {
-                                const cartBadge = document.getElementById('cartBadge');
-                                if (cartBadge) {
-                                    cartBadge.textContent = data.count;
-                                    if (data.count > 0) {
-                                        cartBadge.style.display = 'flex';
-                                    } else {
-                                        cartBadge.style.display = 'none';
-                                    }
+                <!-- Add cart route meta tag for CartManager -->
+                <meta name="cart-count-route" content="{{ route('user.cart.count') }}">
+
+                <script>
+                    // Initialize cart system with enhanced features
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Override cart route in CartManager
+                        if (window.cartManager) {
+                            window.cartManager.cartRoute = '{{ route('user.cart.count') }}';
+                            window.cartManager.forceUpdate();
+                        }
+
+                        // Additional listeners for specific cart actions
+                        document.addEventListener('click', function(e) {
+                            const target = e.target;
+
+                            // Handle quantity changes
+                            if (target.matches('input[type="number"][name*="quantity"]') ||
+                                target.matches('select[name*="quantity"]')) {
+                                target.addEventListener('change', function() {
+                                    setTimeout(() => window.updateCartCount(), 800);
+                                });
+                            }
+
+                            // Handle remove from cart buttons
+                            if (target.closest('button')?.textContent?.includes('Hapus') ||
+                                target.closest('button')?.classList?.contains('remove-from-cart') ||
+                                target.closest('[data-action="remove-from-cart"]')) {
+                                setTimeout(() => window.updateCartCount(), 500);
+                            }
+                        });
+
+                        // Listen for AJAX requests that might affect cart
+                        const originalFetch = window.fetch;
+                        window.fetch = function(...args) {
+                            const [url] = args;
+                            const isCartRequest = typeof url === 'string' &&
+                                (url.includes('/cart') || url.includes('/keranjang'));
+
+                            return originalFetch.apply(this, args).then(response => {
+                                if (isCartRequest && response.ok) {
+                                    setTimeout(() => window.updateCartCount(), 300);
                                 }
-                            })
-                            .catch(error => console.error('Error updating cart count:', error));
+                                return response;
+                            });
+                        };
+                    });
+                </script>
+
+                <!-- Enhanced CSS for cart badge animations -->
+                <style>
+                    @keyframes pulse {
+                        0% {
+                            transform: scale(1);
+                            background-color: rgb(239 68 68);
+                        }
+                        50% {
+                            transform: scale(1.15);
+                            background-color: rgb(220 38 38);
+                            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+                        }
+                        100% {
+                            transform: scale(1);
+                            background-color: rgb(239 68 68);
+                        }
                     }
 
-                    // Expose updateCartCount globally for use in other scripts
-                    window.updateCartCount = updateCartCount;
-                </script>
+                    @keyframes bounce {
+                        0%, 20%, 53%, 80%, 100% {
+                            transform: scale(1);
+                        }
+                        40%, 43% {
+                            transform: scale(1.2);
+                        }
+                        70% {
+                            transform: scale(1.1);
+                        }
+                        90% {
+                            transform: scale(1.05);
+                        }
+                    }
+
+                    #cartBadge {
+                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                    }
+
+                    #cartBadge:hover {
+                        transform: scale(1.1);
+                        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+                    }
+
+                    /* Animation for cart link when badge is visible */
+                    .cart-link:hover #cartBadge {
+                        animation: bounce 0.6s ease-in-out;
+                    }
+
+                    /* Notification style when cart count increases */
+                    #cartBadge.updated {
+                        animation: pulse 0.6s ease-in-out;
+                    }
+                </style>
             @endif
         @endauth
 
